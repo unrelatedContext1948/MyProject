@@ -1,5 +1,7 @@
 # Setup HumanMusic Project
 
+Qayyum Amin
+
 ## 1. Clone the repo
 
 - Each team member must clone the repository to their own laptop first.
