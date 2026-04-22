@@ -1,6 +1,7 @@
 # Setup HumanMusic Project
 
 Qayyum Amin
+Alisa Maisara
 
 ## 1. Clone the repo
 
