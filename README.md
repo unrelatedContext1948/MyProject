@@ -3,6 +3,7 @@
 Qayyum Amin
 Alisa Maisara
 Fernando Amro
+Norshaffira 
 
 ## 1. Clone the repo
 
