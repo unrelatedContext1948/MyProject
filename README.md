@@ -1,9 +1,12 @@
 # Setup HumanMusic Project
 
-Qayyum Amin
-Alisa Maisara
-Fernando Amro
-Norshaffira 
+Group Members:
+
+- Qayyum Amin
+- Alisa Maisara
+- Fernando Amro
+- Norshaffira
+- Syaloom Pardede
 
 ## 1. Clone the repo
 
