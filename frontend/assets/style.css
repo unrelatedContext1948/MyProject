@@ -1,0 +1,123 @@
+:root {
+  --sage-50: #f7f8f5;
+  --sage-100: #e8ebe3;
+  --sage-200: #d4dac9;
+  --sage-300: #b8c4a8;
+  --sage-400: #9aab88;
+  --sage-500: #7d916d;
+  --sage-600: #647357;
+  --sage-700: #4e5a45;
+  --sage-800: #3a4334;
+  --sage-900: #2a3027;
+  --cream: #faf8f3;
+  --warm-gray: #e5e1d8;
+  --charcoal: #3a3a38;
+  --terracotta: #c67b5c;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  background-color: var(--cream);
+  color: var(--charcoal);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ── Navbar ── */
+
+.navbar {
+  border-bottom: 1px solid var(--sage-300);
+  background-color: white;
+  padding: 1rem 1.5rem;
+}
+
+.navbar-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.navbar-logo h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.live-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #dc2626;
+  animation: livepulse 2.1s ease-in-out infinite;
+}
+
+@keyframes livepulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+.live-text {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+.btn-primary {
+  background-color: var(--sage-600);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--sage-700);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--charcoal);
+  border: 1px solid var(--sage-300);
+}
+
+.btn-secondary:hover {
+  background-color: var(--sage-50);
+}

@@ -3,7 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>HumanMusic - Radio</title>
+    <link rel="stylesheet" href="assets/style.css" />
   </head>
-  <body></body>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-content">
+        <a class="navbar-logo" href="index.html">
+          <h1 class="logo-title">HumanMusic</h1>
+        </a>
+        <div class="navbar-right">
+          <div class="live-badge">
+            <div class="live-dot"></div>
+            <span class="live-text">Live</span>
+          </div>
+          <div id="navLoggedOut">
+            <button class="btn btn-primary" onclick="openLoginModal()">
+              Log in
+            </button>
+          </div>
+          <div id="navLoggedIn" class="navbar-user hidden">
+            <span class="navbar-username" id="navUsername">Placeholder</span>
+            <span class="role-badge" id="navRoleBadge"
+              >Pl. Admin/auth_user
+            </span>
+            <button class="btn btn-secondary" onclick="logout()">
+              Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <main></main>
+  </body>
 </html>
