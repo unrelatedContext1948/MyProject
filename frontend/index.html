@@ -17,16 +17,15 @@
             <div class="live-dot"></div>
             <span class="live-text">Live</span>
           </div>
+          <!--Logged Out state-->
           <div id="navLoggedOut">
             <button class="btn btn-primary" onclick="openLoginModal()">
               Log in
             </button>
           </div>
+          <!--Logged In state , also still hidden wait for js !! -->
           <div id="navLoggedIn" class="navbar-user hidden">
-            <span class="navbar-username" id="navUsername">Placeholder</span>
-            <span class="role-badge" id="navRoleBadge"
-              >Pl. Admin/auth_user
-            </span>
+            <span class="user-role" id="userRoleDisplay"></span>
             <button class="btn btn-secondary" onclick="logout()">
               Log Out
             </button>

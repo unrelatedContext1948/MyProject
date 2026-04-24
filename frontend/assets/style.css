@@ -41,6 +41,9 @@ body {
   border-bottom: 1px solid var(--sage-300);
   background-color: white;
   padding: 1rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 999;
 }
 
 .navbar-content {
@@ -50,10 +53,18 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-.navbar-logo h1 {
+
+.navbar-logo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+.navbar-logo h1 {
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 .navbar-right {
