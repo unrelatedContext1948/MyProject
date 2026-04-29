@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HumanMusic - Radio</title>
-    <link rel="stylesheet" href="assets/style.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <!--Feathericons for the icon :p -->
+    <script src="https://unpkg.com/feather-icons"></script>
   </head>
   <body>
     <nav class="navbar">
@@ -20,7 +22,7 @@
           <!--Logged Out state-->
           <div id="navLoggedOut">
             <button class="btn btn-primary" onclick="openLoginModal()">
-              Log in
+              Login
             </button>
           </div>
           <!--Logged In state , also still hidden wait for js !! -->
@@ -33,7 +35,71 @@
         </div>
       </div>
     </nav>
+    <!--login modal pop-up-->
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Login</h2>
+          <button class="close-btn" onclick="closeLoginModal()">
+            <i data-feather="x"></i>
+          </button>
+        </div>
+        <!--Form-->
+        <form onsubmit="handleLogin(event)">
+          <div class="form-element">
+            <label class="form-label">Username</label>
+            <input
+              type="text"
+              id="loginUsername"
+              class="form-input"
+              placeholder="Enter username"
+            />
+          </div>
+          <div class="form-element">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              id="loginPassword"
+              class="form-input"
+              placeholder="Password"
+            />
+          </div>
+          <div class="form-element">
+            <label class="form-label">Login as</label>
+            <div class="radio-element">
+              <input type="radio" id="User" name="role" value="User" checked />
+              <label for="User">User</label>
+            </div>
+            <div class="radio-element">
+              <input
+                type="radio"
+                id="Admin"
+                name="role"
+                value="Admin"
+                checked
+              />
+              <label for="Admin">Admin</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeLoginModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Login</button>
+          </div>
+        </form>
+      </div>
+    </div>
     <main></main>
     <script src="/script.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <!--Feathericons JS-->
+    <script>
+      feather.replace();
+    </script>
   </body>
 </html>
