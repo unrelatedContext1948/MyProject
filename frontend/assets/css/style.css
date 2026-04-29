@@ -13,6 +13,7 @@
   --warm-gray: #e5e1d8;
   --charcoal: #3a3a38;
   --terracotta: #c67b5c;
+  --white: #ffff;
 }
 
 * {
@@ -35,11 +36,11 @@ body {
   display: none;
 }
 
-/* ── Navbar ── */
+/* Navbar */
 
 .navbar {
   border-bottom: 1px solid var(--sage-300);
-  background-color: white;
+  background-color: var(--white);
   padding: 1rem 1.5rem;
   position: sticky;
   top: 0;
@@ -105,6 +106,7 @@ body {
   letter-spacing: 0.1em;
 }
 
+/* Button */
 .btn {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
@@ -116,7 +118,7 @@ body {
 }
 .btn-primary {
   background-color: var(--sage-600);
-  color: white;
+  color: var(--white);
 }
 
 .btn-primary:hover {
@@ -124,11 +126,110 @@ body {
 }
 
 .btn-secondary {
-  background-color: white;
+  background-color: var(--white);
   color: var(--charcoal);
   border: 1px solid var(--sage-300);
 }
 
 .btn-secondary:hover {
   background-color: var(--sage-50);
+}
+
+/* Login  Modal Pop-up */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background-color: var(--white);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.close-btn:hover {
+  background-color: var(--sage-100);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.modal-footer button {
+  flex: 1;
+}
+
+/* Forms */
+.form-element {
+  margin-bottom: 1 rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--sage-300);
+  border-radius: 0.5rem;
+  background-color: var(--white);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--sage-600);
+}
+
+.form-input::placeholder {
+  color: var(--sage-400);
 }
