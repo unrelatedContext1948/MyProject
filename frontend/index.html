@@ -19,12 +19,15 @@
             <div class="live-dot"></div>
             <span class="live-text">Live</span>
           </div>
+
           <!--Logged Out state-->
+
           <div id="navLoggedOut">
             <button class="btn btn-primary" onclick="openLoginModal()">
               Login
             </button>
           </div>
+
           <!--Logged In state , also still hidden wait for js !! -->
           <div id="navLoggedIn" class="navbar-user hidden">
             <span class="user-role" id="userRoleDisplay"></span>
@@ -44,10 +47,11 @@
             <i data-feather="x"></i>
           </button>
         </div>
+
         <!--Form-->
         <form onsubmit="handleLogin(event)">
           <div class="form-element">
-            <label class="form-label">Username</label>
+            <label class="form-title">Username</label>
             <input
               type="text"
               id="loginUsername"
@@ -56,7 +60,7 @@
             />
           </div>
           <div class="form-element">
-            <label class="form-label">Password</label>
+            <label class="form-title">Password</label>
             <input
               type="password"
               id="loginPassword"
@@ -65,30 +69,25 @@
             />
           </div>
           <div class="form-element">
-            <label class="form-label">Login as</label>
+            <label class="form-title">Login as</label>
             <div class="radio-element">
-              <input type="radio" id="User" name="role" value="User" checked />
-              <label for="User">User</label>
-            </div>
-            <div class="radio-element">
-              <input
-                type="radio"
-                id="Admin"
-                name="role"
-                value="Admin"
-                checked
-              />
-              <label for="Admin">Admin</label>
+              <label class="radio-option">
+                <input
+                  type="radio"
+                  id="User"
+                  name="role"
+                  value="User"
+                  checked
+                />
+                <span>User</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" id="Admin" name="role" value="Admin" />
+                <span>Admin</span>
+              </label>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="closeLoginModal()"
-            >
-              Cancel
-            </button>
             <button type="submit" class="btn btn-primary">Login</button>
           </div>
         </form>
