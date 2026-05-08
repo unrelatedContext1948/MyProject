@@ -7,25 +7,25 @@ const QUEUE = [
     title: "The Kid LAROI, Justin Bieber - STAY (Official Video)",
     submittedBy: "user_1",
     duration: "3:48",
-    isAdbreak: false,
+    type: "video",
   },
   {
     title: "Bruno Mars - Risk it all (Official Video)",
     submittedBy: "user_2",
     duration: "3:02",
-    isAdbreak: false,
+    type: "video",
   },
   {
     title: "Olivia Rodrigo - drop dead (Official Video)",
     submittedBy: "user_3",
     duration: "4:11",
-    isAdbreak: false,
+    type: "video",
   },
   {
     title: "AD Break",
     submittedBy: "admin_1",
     duration: "0:45",
-    isAdbreak: true,
+    type: "adbreak",
     adText:
       " New publication about topic A has been published , and can be seen in the website",
   },
@@ -33,19 +33,19 @@ const QUEUE = [
     title: "Mozart - Piano Sonata No.11",
     submittedBy: "user_1",
     duration: "6:03",
-    isAdbreak: false,
+    type: "video",
   },
   {
     title: " Yung Kai - blue (Official Video)",
     submittedBy: "admin_1",
     duration: "2:36",
-    isAdbreak: false,
+    type: "video",
   },
   {
     title: "Billie Eilish - Bad Guy (Official Video)",
     submittedBy: "user_4",
     duration: "4:12",
-    isAdbreak: false,
+    type: "video",
   },
 ];
 
@@ -54,6 +54,6 @@ let currentIndex = 0;
 
 // demo log in for prototype only, will be deleted later
 const DEMO_LOGIN = {
-  user: { password: "user123", role: "user" },
-  admin: { password: "admin123", role: "admin" },
+  user: { password: "user123" },
+  admin: { password: "admin123" },
 };

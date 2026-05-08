@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HumanMusic - Radio</title>
     <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/player.css" />
     <!--Feathericons for the icon :p -->
     <script src="https://unpkg.com/feather-icons"></script>
   </head>
@@ -38,6 +39,7 @@
         </div>
       </div>
     </nav>
+
     <!--login modal pop-up-->
     <div id="loginModal" class="modal">
       <div class="modal-content">
@@ -68,35 +70,77 @@
               placeholder="Password"
             />
           </div>
-          <div class="form-element">
-            <label class="form-title">Login as</label>
-            <div class="radio-element">
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  id="User"
-                  name="role"
-                  value="User"
-                  checked
-                />
-                <span>User</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" id="Admin" name="role" value="Admin" />
-                <span>Admin</span>
-              </label>
-            </div>
-          </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Login</button>
           </div>
         </form>
       </div>
     </div>
-    <div id="mainContent"></div>
-    <script src="/script.js"></script>
+
+    <!--Main content starts from here -->
+
+    <div id="mainContent">
+      <div class="tv-player">
+        <div class="tv-frame">
+          <!--TV frame, the brown frame-->
+          <div class="tv-screen">
+            <!-- The screen, the black space-->
+
+            <div id="youtubePlayer">
+              <!--Youtube player will be injected here using javascript Fernando & backend
+
+              MAIN IDEA suggestions: u can change it later, it's up to u how to  implement this 
+              -please refer to the ID i've written, if you wanna change it's fine 
+              -Load the YouTube IFrame API
+              -create JS 
+              -video ID comes from the QUEUE[currentIndex]
+              -when video ends, update currentIndex so it will be synchronized with the queue
+              - use websocket
+              -->
+            </div>
+          </div>
+          <div class="tv-control-bar">
+            <!--Dots and line are under The TV-->
+            <div class="tv-indicator"></div>
+            <div class="tv-line"></div>
+          </div>
+        </div>
+
+        <!--Song Title and who submitted it-->
+        <div class="track-info">
+          <p class="track-title" id="nowPlayingTitle">
+            Song x - official video
+          </p>
+          <p class="track-submittedby" id="nowPlayingSubmittedBy">
+            Submitted by x
+          </p>
+        </div>
+
+        <!--Volume Control-->
+        <div class="volume-control">
+          <i data-feather="volume-1"></i>
+          <input
+            type="range"
+            class="volume-slider"
+            id="volumeSlider"
+            min="0"
+            max="100"
+            value="70"
+            oninput="updateVolume()"
+          />
+          <span class="volume-value" id="volumeValue"></span>
+        </div>
+      </div>
+    </div>
+
+    <!--Syaloom JS, don't change anything!-->
     <script src="assets/js/data.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/player.js"></script>
+
+    <!--Fernando-->
+    <script src="/script.js"></script>
+
     <!--Feathericons JS-->
     <script>
       feather.replace();

@@ -234,29 +234,3 @@ body {
 .form-input::placeholder {
   color: var(--sage-400);
 }
-
-/* Radio */
-.radio-element {
-  display: flex;
-  gap: 1rem;
-}
-
-.radio-option {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border: 1px solid var(--sage-300);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.radio-option:hover {
-  background-color: var(--sage-50);
-}
-
-.radio-option input {
-  accent-color: var(--sage-600);
-}
