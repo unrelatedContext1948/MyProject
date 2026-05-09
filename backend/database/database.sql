@@ -1,5 +1,5 @@
 
-CREATE TABLE "UsersTable"(
+CREATE TABLE UsersTable(
     UserID INT,
     Username TEXT,
     Password TEXT,
