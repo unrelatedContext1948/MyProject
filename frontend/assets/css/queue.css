@@ -1,0 +1,123 @@
+/* for the queue lists */
+
+.queue-section {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 2rem;
+}
+
+.queue-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/*Queue item  from queue.js*/
+
+.queue-element {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--white);
+  border: 1px solid var(--sage-300);
+  border-radius: 0.5rem;
+}
+
+/*add highlight*/
+.queue-adbreak-first {
+  background-color: #faf8f6;
+  border: 1px solid #d7a18a;
+  border-left: 3px solid var(--terracota-light);
+}
+.queue-song-first {
+  border-left: 3px solid var(--sage-600);
+  background-color: var(--sage-50);
+}
+
+/*icon circle and icons */
+.queue-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.queue-icon.song {
+  background-color: var(--sage-light);
+}
+.queue-icon.ad {
+  background-color: var(--terracotta-light);
+}
+
+.queue-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.queue-icon.song svg {
+  color: var(--sage-600);
+}
+
+.queue-icon.ad svg {
+  color: var(--terracotta);
+}
+
+/* for the details*/
+.queue-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.queue-title-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.queue-title-element {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-adtext {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.89rem;
+  color: var(--sage-700);
+}
+
+.ad-badge {
+  background-color: var(--terracotta-mid);
+  color: var(--terracotta);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.queue-submitter {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  color: var(--sage-700);
+}
+
+.queue-duration {
+  font-size: 0.875rem;
+  color: var(--sage-700);
+  flex-shrink: 0;
+}

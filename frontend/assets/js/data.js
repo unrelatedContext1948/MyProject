@@ -27,7 +27,7 @@ const QUEUE = [
     duration: "0:45",
     type: "adbreak",
     adText:
-      " New publication about topic A has been published , and can be seen in the website",
+      " New publication about topic A has been published , and can be seen in the website and also the full documentation for the paper is now ",
   },
   {
     title: "Mozart - Piano Sonata No.11",

@@ -9,10 +9,14 @@
   --sage-700: #4e5a45;
   --sage-800: #3a4334;
   --sage-900: #2a3027;
+  --sage-light: #6473571a;
   --cream: #faf8f3;
   --warm-gray: #e5e1d8;
   --charcoal: #3a3a38;
   --terracotta: #c67b5c;
+  --terracotta-light: #c67b5c1a;
+  --terracotta-mid: #c67b5c33;
+
   --white: #ffff;
 }
 
