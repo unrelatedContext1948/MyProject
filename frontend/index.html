@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/player.css" />
     <link rel="stylesheet" href="assets/css/queue.css" />
+    <link rel="stylesheet" href="assets/css/songadbreak.css" />
     <!--Feathericons for the icon :p -->
     <script src="https://unpkg.com/feather-icons"></script>
   </head>
@@ -52,7 +53,7 @@
         </div>
 
         <!--Form-->
-        <form onsubmit="handleLogin(event)">
+        <form id="handleLogin">
           <div class="form-element">
             <label class="form-title">Username</label>
             <input
@@ -91,8 +92,8 @@
             <div id="youtubePlayer">
               <!--Youtube player will be injected here using javascript Fernando & backend
 
-              MAIN IDEA suggestions: u can change it later, it's up to u how to  implement this 
-              -please refer to the ID i've written, if you wanna change it's fine 
+              MAIN IDEA suggestions: u can change it later, it's up to u how to do this 
+              -please refer to the ID i've written 
               -Load the YouTube IFrame API
               -create JS 
               -video ID comes from the QUEUE[currentIndex]
@@ -141,6 +142,62 @@
           <!--JS renderQueue.js-->
         </div>
       </div>
+
+      <!--Submission Forms for the authorized users-->
+      <!--will be hidden by deafult, only showed after login ist successfull-->
+      <div class="submission-section " id="submissionSection">
+        <!--to submit youtube link-->
+        <div class="form-box">
+          <div class="form-header-youtube">
+            <i data-feather="youtube"></i>
+            <h3>Submit Youtube Link</h3>
+          </div>
+          <form id="submitTrackForm">
+            <div class="form-element">
+              <label class="form-title">Youtube URL</label>
+              <input
+                type="url"
+                id="trackURL"
+                class="form-input"
+                placeholder="https://youtube.com/watch?v=..."
+                required
+              />
+            </div>
+            <button type="submit" class="btn-submit primary">
+              Add to Queue
+            </button>
+          </form>
+        </div>
+
+        <!--to submit Ad break text-->
+        <div class="form-box">
+          <div class="form-header-adbreak">
+            <i data-feather="message-circle"></i>
+            <h3>Request Ad Break <h3>
+          </div>
+            <form id="submitAdBreakForm">
+              <div class="form-element"></div>
+              <label class="form-title">Ad Break Text</label>
+              <textarea
+              id="adBreakText"
+              class="form-input"
+              rows="4"
+              placeholder="Enter text for AI-Voiced Ad break between 300 and 500 characters"
+              minlength="300"
+              maxlength="500"
+              required
+              ></textarea>
+              <p class="form-hint">Text will be converted to audio and queued for admin approval</p>
+            <button type="submit" class="btn-submit ad">Submit for Approval</button>
+            </form>
+        </div>
+          
+       
+
+        <!--end of submission section-->
+      </div>
+
+      <!--End of main content-->
     </div>
 
     <!--Syaloom JS, don't change anything!-->
@@ -148,6 +205,7 @@
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/player.js"></script>
     <script src="assets/js/queue.js"></script>
+    <script src="assets/js/songadbreak.js"></script>
 
     <!--Fernando-->
     <script src="/script.js"></script>
