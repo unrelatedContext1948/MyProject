@@ -28,7 +28,8 @@ CREATE TABLE AdBreaksTable(
     AdBreakTitle TEXT NOT NULL,
     SubmittedBy TEXT NOT NULL,
     AdBreakText TEXT NOT NULL,
-    AdBreakURL TEXT NOT NULL
+    AdBreakURL TEXT NOT NULL,
+    Status TEXT NOT NULL
 );
 
 `);
