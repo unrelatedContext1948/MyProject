@@ -1,0 +1,36 @@
+const Database = require('better-sqlite3');
+const path = require('path');
+const db = new Database(path.join(__dirname, 'database.db'));
+
+db.exec(`
+CREATE TABLE UsersTable(
+    UserID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    Username TEXT UNIQUE NOT NULL,
+    Password TEXT NOT NULL,
+    JoinDate DATE NOT NULL,
+    Role TEXT NOT NULL,
+    Token TEXT
+);
+
+CREATE TABLE PlaylistsTable (
+    PlaylistID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    Title TEXT NOT NULL,
+    Channel TEXT NOT NULL,
+    Duration TEXT,
+    StartTime TEXT,
+    EndTime TEXT,
+    SubmittedBy TEXT,
+    VideoURL TEXT
+);
+
+CREATE TABLE AdBreaksTable(
+    AdBreakID INTEGER PRIMARY KEY AUTOINCREMENT,
+    AdBreakTitle TEXT NOT NULL,
+    SubmittedBy TEXT NOT NULL,
+    AdBreakText TEXT NOT NULL,
+    AdBreakURL TEXT NOT NULL
+);
+
+`);
+console.log('Database connected and tables created successfully!');
+module.exports = db;
