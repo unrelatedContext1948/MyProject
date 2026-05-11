@@ -207,7 +207,7 @@ body {
   flex: 1;
 }
 
-/* Forms */
+/* Forms elements */
 
 .form-element {
   margin-bottom: 1rem;
@@ -229,6 +229,9 @@ body {
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 }
 
 .form-input:focus {
@@ -237,4 +240,53 @@ body {
 
 .form-input::placeholder {
   color: var(--sage-400);
+}
+
+textarea.form-input {
+  resize: vertical;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--sage-700);
+  margin-top: 0.25rem;
+  margin-bottom: 0.95rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/*element for forms submission button except authform */
+
+.btn-submit {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.btn-submit.primary {
+  background-color: var(--sage-600);
+  color: #ffff;
+}
+
+.btn-submit.primary:hover {
+  background-color: var(--sage-700);
+}
+
+.btn-submit.ad {
+  background-color: var(--terracotta-light);
+  border: 1px solid var(--terracotta);
+  color: var(--terracotta);
+}
+
+.btn-submit.ad:hover {
+  background-color: var(--terracotta-mid);
 }
