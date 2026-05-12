@@ -1,4 +1,4 @@
 node_modules/
 .env
-backend/database/*.exe
-backend/database/*.db
+*.exe
+*.db
