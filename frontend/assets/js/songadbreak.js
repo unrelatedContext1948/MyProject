@@ -1,5 +1,5 @@
 /* Submit Track Form : when the authorized user/admin submit youtube Link
-For Backend/integration replace this with real API POST : URL, starttime endtime, submitted by */
+For Backend/integration replace the alert("Track submitted to queue!") with real API POST : URL, starttime endtime, submitted by, etc u arrange it urself  */
 
 const submitTrackForm = document.getElementById("submitTrackForm");
 
@@ -16,7 +16,7 @@ function submitTrack(event) {
 }
 
 /* Submit Ad Break Form : when the authorized user/admin submit youtube Link
-For Backend/integration replace this with real API POST : adbreaktext, and submitted by */
+For Backend/integration replace alert("Ad Break submitted for approval!")with real API POST : adbreaktext, and submitted by, etc u arrange it urself*/
 
 const submitAdBreakForm = document.getElementById("submitAdBreakForm");
 
