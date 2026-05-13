@@ -1,16 +1,25 @@
-//1. Import: download all needed tools
-const express = require("express"); //Framework to create a server
-const path = require("path"); //Tool to work with file- and folder-paths
-const db = require("./database"); //importing the database-connection
-const app = express(); //create an instance of the express-framework
+/*
+comment: This file sets up the Express server for the backend of the application. 
+It serves static files from the frontend directory, handles API routes for 
+fetching the playlist and managing user authentication, 
+and maintains a simple session state to track whether a user is logged in or not. 
+The server listens for requests and responds with the appropriate data 
+or HTML files based on the route accessed by the client.
+*/
 
-//2. goes from the actual folder to the frontend's folder
+// Import necessary modules and initialize the Express application
+const express = require("express");
+const path = require("path");
+const db = require("./database");
+const app = express();
+
+
 const frontendPath = path.join(__dirname, "..", "..", "frontend");
 
-//3. static-files should also be available for the WWebsite
+// Serve static files from the frontend directory
 app.use("/", express.static(frontendPath));
 
-//4. Routing: what should happen for each URL?
+// Define routes for serving HTML files and handling API requests
 app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
@@ -19,56 +28,48 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(frontendPath, "admin.html"));
 });
 
-//API-Endpoints: these are the URLs that the frontend can call to get data from the backend
-app.get("/api/queue", (req, res) => {
+// API route to fetch the current playlist from the database
+app.get("/api/queue", async (req, res) => {
   const sql = "SELECT * FROM PlaylistsTable";
-
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error("PLaylist's error:", err.message);
-      return res.status(500).json({ error: "Error while loading playlists" });
-    }
+  try {
+    const rows = await db.all(sql);
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: "Error" });
+  }
 });
 
-//API-Endpoint: get all ads from the database
-app.get("/api/ads", (req, res) => {
-  const sql = "SELECT * FROM AdBreaksTable";
+// Simple session management for demonstration purposes
+let sessionLoggedIn = false;
 
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error("Ads error:", err.message);
-      return res.status(500).json({ error: "Error while loading ads" });
-    }
-    res.json(rows);
-  });
-});
-
-//API-Endpoint: login, check if the user is authorized
-app.post("/api/login", express.json(), (req, res) => {
-  const { username } = req.body;
-  const sql = "SELECT * FROM AuthorizedUsersTable WHERE username = ?";
-
-  db.get(sql, [username], (err, row) => {
-    if (err) {
-      console.error("Login error:", err.message);
-      return res.status(500).json({ error: "Error while checking login" });
-    }
+app.post("/api/login", express.json(), async (req, res) => {
+  const { username, password } = req.body;
+  const sql = "SELECT * FROM AuthorizedUsersTable WHERE Username = ? AND Password = ?";
+  try {
+    const row = await db.get(sql, [username, password]);
     if (row) {
-      res.json({ success: true, message: "Willkommen!" });
+      sessionLoggedIn = true;
+      res.json({ success: true });
     } else {
-      res.status(401).json({ success: false, message: "not authorized" });
+      res.status(401).json({ success: false });
     }
-  });
+  } catch (err) {
+    res.status(500).json({ error: "Error" });
+  }
 });
 
-//API-Endpoint: acts like an information-Desk
 app.get("/api/user", (req, res) => {
   res.json({
-    isLoggedIn: true,
-    username: "Admin-User",
+    isLoggedIn: sessionLoggedIn,
+    username: "User",
     role: "Admin",
   });
 });
+
+// The logout route resets the session state to log the user out
+app.post("/api/logout", (req, res) => {
+  sessionLoggedIn = false;
+  res.json({ success: true });
+});
+
 module.exports = app;
