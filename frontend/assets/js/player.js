@@ -1,5 +1,5 @@
-/* for volume control and now playing content */
-/* actual playback is handled by INTEGRATION & BACKEND */
+/* for volume control and now playing content 
+actual playback is handled by INTEGRATION & BACKEND */
 
 document.addEventListener("DOMContentLoaded", function () {
   showCurrentSong();
@@ -10,12 +10,14 @@ document.addEventListener("DOMContentLoaded", function () {
 -Find the current song from the queue and puts its title & submitted by  on the page.
 
 for integration & backend:
-pls call showCurrentSong() whenever the Websocket sends a new currentIndex */
+pls call showCurrentSong() whenever the Websocket sends a new currentIndex 
+
+*/
 
 function showCurrentSong() {
   const song = QUEUE[currentIndex];
 
-  if (!song) return; /*if theres no song then stop */
+  if (!song) return; //if theres no song then stop
 
   const titleElement = document.getElementById("nowPlayingTitle");
   if (titleElement) {
@@ -34,7 +36,7 @@ function showCurrentSong() {
   }
 }
 
-/* Initial volume display n also when moving the slider, the number and the color will also change depending on the slide volume value , e.g volume getting louder  */
+// Initial volume display n also when moving the slider, the number and the color will also change depending on the slide volume value , e.g volume getting louder
 function updateVolume() {
   const slider = document.getElementById("volumeSlider");
 

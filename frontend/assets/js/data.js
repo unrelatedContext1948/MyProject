@@ -1,7 +1,17 @@
-// This only dummy data as (beofre the prototype)
-// can be seen as 'fake DB'
-// arrays should be replaced later with idk fetch api?
+/*
+This only dummy data i made, for visualization for the UI
+can be seen as 'fake DB'
+arrays should be replaced later with idk fetch api?
 
+This is the list of songs and ad breaks a.k.a The Queue list
+   Each item is an object with these fields:
+     - title: the name shown in the queue
+     - submittedBy: who added this song
+     - duration: how long it is
+     - type: video or ad break
+     - adText: the text of the ad (only for ad breaks) 
+
+*/
 const QUEUE = [
   {
     title: "The Kid LAROI, Justin Bieber - STAY (Official Video)",
@@ -52,8 +62,12 @@ const QUEUE = [
 //which track is playing rn, backend will  replace this with websocket?
 let currentIndex = 0;
 
-// demo log in for prototype only, will be deleted later
-const DEMO_LOGIN = {
-  user: { password: "user123" },
-  admin: { password: "admin123" },
-};
+/* demo log in for prototype only, can be deleted later
+later will be replaced with API login username, password n the server return with role (admin or  auth. user)
+The role is determined automatically by the username and password combination.
+*/
+
+const DEMO_LOGIN = [
+  { username: "user", password: "user123", role: "user" },
+  { username: "admin", password: "admin123", role: "admin" },
+];

@@ -26,16 +26,16 @@
           <!--Logged Out state-->
 
           <div id="navLoggedOut">
-            <button class="btn btn-primary" onclick="openLoginModal()">
-              Login
+            <button id ="loginBtn" class="btn btn-primary" onclick="openLoginModal()">
+              Log in
             </button>
           </div>
 
           <!--Logged In state , also still hidden wait for js !! -->
           <div id="navLoggedIn" class="navbar-user hidden">
             <span class="user-role" id="userRoleDisplay"></span>
-            <button class="btn btn-secondary" onclick="logout()">
-              Log Out
+            <button class="btn btn-primary " onclick="logout()">
+              Log out
             </button>
           </div>
         </div>
@@ -53,7 +53,7 @@
         </div>
 
         <!--Form-->
-        <form id="handleLogin">
+        <form id="handleLoginForm">
           <div class="form-element">
             <label class="form-title">Username</label>
             <input
@@ -73,7 +73,7 @@
             />
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary">Log in</button>
           </div>
         </form>
       </div>
@@ -145,7 +145,7 @@
 
       <!--Submission Forms for the authorized users-->
       <!--will be hidden by deafult, only showed after login ist successfull-->
-      <div class="submission-section " id="submissionSection">
+      <div  id="submissionSection" class="submission-section hidden ">
         <!--to submit youtube link-->
         <div class="form-box">
           <div class="form-header-youtube">
