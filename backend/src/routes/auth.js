@@ -69,7 +69,7 @@ router.post ("/login", (req, res) => {
     });
 });
 
-/* POST /auth/login
+/* POST /auth/logout
 Access: Logged in users only
 Purpose: Clear token from database
 */
