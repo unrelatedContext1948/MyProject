@@ -45,11 +45,11 @@ function handleLogin(event) {
   AuthState.role = role;
 
   closeLoginModal();
-  showRole(role, username);
+  showRole(role);
 }
 
 //Role bagde next to logout button after succesfully logging in
-function showRole(role, username) {
+function showRole(role) {
   document.getElementById("loginBtn").classList.add("hidden");
   document.getElementById("navLoggedIn").classList.remove("hidden");
   document.getElementById("userRoleDisplay").textContent =
