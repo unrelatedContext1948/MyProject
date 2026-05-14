@@ -3,7 +3,7 @@ const path = require('path');
 const db = new Database(path.join(__dirname, 'database.db'));
 
 db.exec(`
-CREATE TABLE UsersTable(
+CREATE TABLE IF NOT EXISTS UsersTable(
     UserID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     Username TEXT UNIQUE NOT NULL,
     Password TEXT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE UsersTable(
     Token TEXT
 );
 
-CREATE TABLE PlaylistsTable (
+CREATE TABLE IF NOT EXISTS PlaylistsTable (
     PlaylistID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     Title TEXT NOT NULL,
     Channel TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE PlaylistsTable (
     VideoURL TEXT
 );
 
-CREATE TABLE AdBreaksTable(
+CREATE TABLE IF NOT EXISTS AdBreaksTable(
     AdBreakID INTEGER PRIMARY KEY AUTOINCREMENT,
     AdBreakTitle TEXT NOT NULL,
     SubmittedBy TEXT NOT NULL,
