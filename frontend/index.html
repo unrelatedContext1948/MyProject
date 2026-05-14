@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HumanMusic - Radio</title>
     <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/player.css" />
+    <link rel="stylesheet" href="assets/css/queue.css" />
+    <link rel="stylesheet" href="assets/css/songadbreak.css" />
     <!--Feathericons for the icon :p -->
     <script src="https://unpkg.com/feather-icons"></script>
   </head>
@@ -23,21 +26,22 @@
           <!--Logged Out state-->
 
           <div id="navLoggedOut">
-            <button class="btn btn-primary" onclick="openLoginModal()">
-              Login
+            <button id ="loginBtn" class="btn btn-primary" onclick="openLoginModal()">
+              Log in
             </button>
           </div>
 
           <!--Logged In state , also still hidden wait for js !! -->
           <div id="navLoggedIn" class="navbar-user hidden">
             <span class="user-role" id="userRoleDisplay"></span>
-            <button class="btn btn-secondary" onclick="logout()">
-              Log Out
+            <button class="btn btn-primary " onclick="logout()">
+              Log out
             </button>
           </div>
         </div>
       </div>
     </nav>
+
     <!--login modal pop-up-->
     <div id="loginModal" class="modal">
       <div class="modal-content">
@@ -49,7 +53,7 @@
         </div>
 
         <!--Form-->
-        <form onsubmit="handleLogin(event)">
+        <form id="handleLoginForm">
           <div class="form-element">
             <label class="form-title">Username</label>
             <input
@@ -68,35 +72,144 @@
               placeholder="Password"
             />
           </div>
-          <div class="form-element">
-            <label class="form-title">Login as</label>
-            <div class="radio-element">
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  id="User"
-                  name="role"
-                  value="User"
-                  checked
-                />
-                <span>User</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" id="Admin" name="role" value="Admin" />
-                <span>Admin</span>
-              </label>
-            </div>
-          </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary">Log in</button>
           </div>
         </form>
       </div>
     </div>
-    <div id="mainContent"></div>
-    <script src="/script.js"></script>
+
+    <!--Main content starts from here -->
+
+    <div id="mainContent">
+      <!--Player: TV, volume button etc-->
+      <div class="tv-player">
+        <div class="tv-frame">
+          <!--TV frame, the brown frame-->
+          <div class="tv-screen">
+            <!-- The screen, the black space-->
+
+            <div id="youtubePlayer">
+              <!--Youtube player will be injected here using javascript Fernando & backend
+
+              MAIN IDEA suggestions: u can change it later, it's up to u how to do this 
+              -please refer to the ID i've written 
+              -Load the YouTube IFrame API
+              -create JS 
+              -video ID comes from the QUEUE[currentIndex]
+              -when video ends, update currentIndex so it will be synchronized with the queue
+              - use websocket
+              -->
+            </div>
+          </div>
+          <div class="tv-control-bar">
+            <!--Dots and line are under The TV-->
+            <div class="tv-indicator"></div>
+            <div class="tv-line"></div>
+          </div>
+        </div>
+
+        <!--Song Title and who submitted it-->
+        <div class="track-info">
+          <p class="track-title" id="nowPlayingTitle">
+            Song x - official video
+          </p>
+          <p class="track-submittedby" id="nowPlayingSubmittedBy">
+            Submitted by x
+          </p>
+        </div>
+
+        <!--Volume Control-->
+        <div class="volume-control">
+          <i data-feather="volume-1"></i>
+          <input
+            type="range"
+            class="volume-slider"
+            id="volumeSlider"
+            min="0"
+            max="100"
+            value="70"
+            oninput="updateVolume()"
+          />
+          <span class="volume-value" id="volumeValue"></span>
+        </div>
+      </div>
+
+      <!--Queue List-->
+      <div class="queue-section">
+        <h3 class="queue-title">Up Next</h3>
+        <div class="queue-list" id="queueList">
+          <!--JS renderQueue.js-->
+        </div>
+      </div>
+
+      <!--Submission Forms for the authorized users-->
+      <!--will be hidden by deafult, only showed after login ist successfull-->
+      <div  id="submissionSection" class="submission-section hidden ">
+        <!--to submit youtube link-->
+        <div class="form-box">
+          <div class="form-header-youtube">
+            <i data-feather="youtube"></i>
+            <h3>Submit Youtube Link</h3>
+          </div>
+          <form id="submitTrackForm">
+            <div class="form-element">
+              <label class="form-title">Youtube URL</label>
+              <input
+                type="url"
+                id="trackURL"
+                class="form-input"
+                placeholder="https://youtube.com/watch?v=..."
+                required
+              />
+            </div>
+            <button type="submit" class="btn-submit primary">
+              Add to Queue
+            </button>
+          </form>
+        </div>
+
+        <!--to submit Ad break text-->
+        <div class="form-box">
+          <div class="form-header-adbreak">
+            <i data-feather="message-circle"></i>
+            <h3>Request Ad Break <h3>
+          </div>
+            <form id="submitAdBreakForm">
+              <div class="form-element"></div>
+              <label class="form-title">Ad Break Text</label>
+              <textarea
+              id="adBreakText"
+              class="form-input"
+              rows="4"
+              placeholder="Enter text for AI-Voiced Ad break between 300 and 500 characters"
+              minlength="300"
+              maxlength="500"
+              required
+              ></textarea>
+              <p class="form-hint">Text will be converted to audio and queued for admin approval</p>
+            <button type="submit" class="btn-submit ad">Submit for Approval</button>
+            </form>
+        </div>
+          
+       
+
+        <!--end of submission section-->
+      </div>
+
+      <!--End of main content-->
+    </div>
+
+    <!--Syaloom JS, don't change anything!-->
     <script src="assets/js/data.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/player.js"></script>
+    <script src="assets/js/queue.js"></script>
+    <script src="assets/js/songadbreak.js"></script>
+
+    <!--Fernando-->
+    <script src="/script.js"></script>
+
     <!--Feathericons JS-->
     <script>
       feather.replace();
