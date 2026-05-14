@@ -1,17 +1,15 @@
 /* for volume control and now playing content 
-actual playback is handled by INTEGRATION & BACKEND */
+actual playback will be handled by backend/integration 
+*/
 
 document.addEventListener("DOMContentLoaded", function () {
   showCurrentSong();
   updateVolume(70);
 });
 
-/*Show current song
--Find the current song from the queue and puts its title & submitted by  on the page.
-
-for integration & backend:
+/*Find the current song from the queue and puts its title & submitted by below the TV
+for integration/backend:
 pls call showCurrentSong() whenever the Websocket sends a new currentIndex 
-
 */
 
 function showCurrentSong() {

@@ -1,15 +1,20 @@
 /*
-This only dummy data i made, for visualization for the UI
-can be seen as 'fake DB'
-arrays should be replaced later with idk fetch api?
+This only dummy data i made, for visualization for the UI, can be seen as 'fake DB'
+arrays should be replaced later with data from server
+*/
 
-This is the list of songs and ad breaks a.k.a The Queue list
+/*
+This is the list of songs and ad breaks a.k.a The queue list
    Each item is an object with these fields:
      - title: the name shown in the queue
      - submittedBy: who added this song
      - duration: how long it is
      - type: video or ad break
      - adText: the text of the ad (only for ad breaks) 
+
+     for integration/backend please change:
+     const QUEUE = await fetch.......
+
 
 */
 const QUEUE = [
@@ -59,7 +64,7 @@ const QUEUE = [
   },
 ];
 
-//which track is playing rn, backend will  replace this with websocket?
+//which track is playing rn, integration/backend will replace this with websocket
 let currentIndex = 0;
 
 /* demo log in for prototype only, can be deleted later
