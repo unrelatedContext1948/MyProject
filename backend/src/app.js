@@ -14,7 +14,6 @@ const db = require("./database");
 const authRoutes = require("./routes/auth");
 const app = express();
 
-
 const frontendPath = path.join(__dirname, "..", "..", "frontend");
 
 // Serve static files from the frontend directory
@@ -36,7 +35,7 @@ app.get("/admin", (req, res) => {
 app.get("/api/queue", (req, res) => {
   const sql = "SELECT * FROM PlaylistsTable";
   try {
-    const rows = await db.prepare(sql).all();
+    const rows = db.prepare(sql).all();
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: "Error" });
@@ -44,9 +43,8 @@ app.get("/api/queue", (req, res) => {
 });
 
 // Simple session management for demonstration purposes
-// The login route checks the provided username and password against 
+// The login route checks the provided username and password against
 // the database and updates the session state accordingly
-
 
 /* --- OLD CODE ---
 let sessionLoggedIn = false;
@@ -79,11 +77,10 @@ app.post("/api/logout", (req, res) => {
 --- NEW CODE --- */
 const { authenticate } = require("./middleware/authorization");
 app.get("/api/user/me", authenticate, (req, res) => {
-  // req.user wurde vom "Türsteher" (Middleware) befüllt
   res.json({
     isLoggedIn: true,
     username: req.user.Username,
-    role: req.user.Role
+    role: req.user.Role,
   });
 });
 module.exports = app;
