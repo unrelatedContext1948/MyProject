@@ -34,5 +34,5 @@ CREATE TABLE IF NOT EXISTS AdBreaksTable(
 );
 
 `);
-console.log("Database connected and tables created successfully!");
+console.log("Database connected and tables created successfully.");
 module.exports = db;

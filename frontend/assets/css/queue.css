@@ -75,7 +75,7 @@
 /* for the details*/
 .queue-details {
   flex: 1;
-  min-width: 0;
+  overflow: hidden;
 }
 
 .queue-title-box {

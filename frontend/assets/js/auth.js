@@ -1,7 +1,6 @@
-// depends on data.js for the demo credential
+//depends on data.js for the demo credential
 
-/*Modal pop-up */
-
+//Modal Pop up
 function openLoginModal() {
   document.getElementById("loginModal").classList.add("active");
 }
@@ -15,12 +14,7 @@ const AuthState = {
   role: null,
 };
 
-/*Log in function
-
-don't forget to replace the credential in handleLogin() !
-
-*/
-
+//For Login
 const handleLoginForm = document.getElementById("handleLoginForm");
 
 handleLoginForm.addEventListener("submit", handleLogin);
@@ -31,12 +25,12 @@ function handleLogin(event) {
   const username = document.getElementById("loginUsername").value.trim(); //trim to delete whitespaces
   const password = document.getElementById("loginPassword").value;
 
-  //frontend integration should change this
+  //Integration/backend should change this ! with fetch API method POST
   const cred = DEMO_LOGIN.find(function (userData) {
     return userData.username === username && userData.password === password;
   });
 
-  /* If nothing was found — wrong username or wrong password — show error */
+  //If nothing was found (wrong username or wrong password) then show error, integration/backend should also adjust this part
   if (!cred) {
     alert("Invalid username or password. Please try again.");
     document.getElementById("loginUsername").value = "";
@@ -44,18 +38,18 @@ function handleLogin(event) {
     return;
   }
 
-  // Get the role automatically from the credentials
+  //Get the role automatically from the credentials
   const role = cred.role;
 
   AuthState.user = username;
   AuthState.role = role;
 
   closeLoginModal();
-  showRole(role, username);
+  showRole(role);
 }
 
 //Role bagde next to logout button after succesfully logging in
-function showRole(role, username) {
+function showRole(role) {
   document.getElementById("loginBtn").classList.add("hidden");
   document.getElementById("navLoggedIn").classList.remove("hidden");
   document.getElementById("userRoleDisplay").textContent =

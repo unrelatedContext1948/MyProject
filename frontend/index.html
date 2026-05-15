@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
   </head>
   <body>
+    <!--Navbar-->
     <nav class="navbar">
       <div class="navbar-content">
         <a class="navbar-logo" href="index.html">
@@ -24,7 +25,6 @@
           </div>
 
           <!--Logged Out state-->
-
           <div id="navLoggedOut">
             <button id ="loginBtn" class="btn btn-primary" onclick="openLoginModal()">
               Log in
@@ -52,7 +52,7 @@
           </button>
         </div>
 
-        <!--Form-->
+        <!--Login Form-->
         <form id="handleLoginForm">
           <div class="form-element">
             <label class="form-title">Username</label>
@@ -82,15 +82,19 @@
     <!--Main content starts from here -->
 
     <div id="mainContent">
+
       <!--Player: TV, volume button etc-->
       <div class="tv-player">
+
+        <!--TV frame, the brown frame-->
         <div class="tv-frame">
-          <!--TV frame, the brown frame-->
+
+          <!-- The screen, the black space-->
           <div class="tv-screen">
-            <!-- The screen, the black space-->
+           
 
             <div id="youtubePlayer">
-              <!--Youtube player will be injected here using javascript Fernando & backend
+              <!--Youtube player will be injected here using javascript by integration/backend
 
               MAIN IDEA suggestions: u can change it later, it's up to u how to do this 
               -please refer to the ID i've written 
@@ -144,7 +148,7 @@
       </div>
 
       <!--Submission Forms for the authorized users-->
-      <!--will be hidden by deafult, only showed after login ist successfull-->
+      <!--will be hidden by deafult, only showed after login ist successful-->
       <div  id="submissionSection" class="submission-section hidden ">
         <!--to submit youtube link-->
         <div class="form-box">
