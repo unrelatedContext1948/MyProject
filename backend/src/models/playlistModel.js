@@ -2,9 +2,9 @@ const db = require("../database/database");
 
 const PlaylistModel = {
   // 1. Get Songs in a Playlist from the database
-  getSongsInPlaylist: (playlistID) => {
-    const sql = `SELECT * FROM playlistsTable WHERE PlaylistID = ?`;
-    return db.prepare(sql).all(playlistID);
+  getSongsInPlaylist: () => {
+    const sql = `SELECT * FROM playlistsTable`;
+    return db.prepare(sql).all();
   },
 
   // 2. Add a song to a playlist in the database
@@ -15,7 +15,7 @@ const PlaylistModel = {
     - duration: how long it is
     - type: video or ad break
     - adText: the text of the ad (only for ad breaks)  
-  */  
+  */
   addSongToPlaylist: (songData) => {
     const { Title, Channel, Duration, VideoURL, SubmittedBy } = songData;
     const sql = `
