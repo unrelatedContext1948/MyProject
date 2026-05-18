@@ -291,3 +291,7 @@ textarea.form-input {
 .btn-submit.ad:hover {
   background-color: var(--terracotta-mid);
 }
+
+.input-error {
+    border: 2px solid red !important;
+}
