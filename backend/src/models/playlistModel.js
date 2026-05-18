@@ -27,7 +27,7 @@ const PlaylistModel = {
 
   // 3. Remove a song from a playlist in the database
   removeSongFromPlaylist: (songID) => {
-    const sql = `DELETE FROM playlistsTable WHERE SongID = ?`;
+    const sql = `DELETE FROM PlaylistsTable WHERE SongID = ?`;
     db.prepare(sql).run(songID);
   },
 };

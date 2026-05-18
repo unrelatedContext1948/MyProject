@@ -1,6 +1,15 @@
-const db = require("../database");
-const bcrypt = require("bcrypt");
+/*
+ userModel.js - Data Access Object for user-related database operations
+ This file defines the UserModel object which provides methods for 
+ user authentication and token management.
+ It abstracts away the database layer and allows us to interact with user data 
+ without directly writing SQL queries in our route handlers.
+ We will use this model in our auth routes to handle login and logout functionality.
+*/
+ const db = require("../database");
+const bcrypt = require("bcrypt"); // for password hashing and comparison
 
+// The UserModel provides the following methods:
 const UserModel = {
     // 1. Login - verify username and password, return user info if valid
     login: (username, password) => {
