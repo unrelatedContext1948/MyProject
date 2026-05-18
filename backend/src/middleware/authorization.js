@@ -8,9 +8,10 @@ const UserModel = require("../models/userModel");
          e.g when an authorized user wants to propose an ad break, that is where it goes through this middleware first before the
          actual route */
 const authenticate = (req, res, next) => {
-    // every protected request must contain: Authorization: Bearer <token>
-    // reject the request if authorization header is missing or does not start with "Bearer "
-    if(!authHeader || !authHeader.startsWith("Bearer ")) {
+    // check if the request has an authorization header and if it starts with "Bearer "
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({
             message: "No valid token provided"
         });
