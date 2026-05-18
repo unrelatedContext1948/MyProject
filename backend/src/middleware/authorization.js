@@ -1,4 +1,4 @@
-const db = require("../database");
+const db = require("../database/database");
 const UserModel = require("../models/userModel");
 
 // AUTHENTICATION MIDDLEWARE
@@ -10,7 +10,7 @@ const UserModel = require("../models/userModel");
 const authenticate = (req, res, next) => {
     // check if the request has an authorization header and if it starts with "Bearer "
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({
             message: "No valid token provided"
