@@ -19,7 +19,10 @@ document.addEventListener("DOMContentLoaded", function () {
   renderQueue();
 });
 
-function renderQueue() {
+async function renderQueue() {
+  const res = await fetch("/api/queue");
+  const QUEUE = await res.json();
+
   const container =
     document.getElementById(
       "queueList",
@@ -60,10 +63,10 @@ function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class= "queue-title-element">${element.title}</span>
+      <span class= "queue-title-element">${element.Title}</span>
       <span class= "ad-badge">AD</span>
       </div>
-      <div class="queue-adtext">${element.adText}</div>
+      <div class="queue-adtext">${element.AdText}</div>
       </div>
       
       `;
@@ -79,11 +82,11 @@ function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class="queue-title-element">${element.title}</span>
+      <span class="queue-title-element">${element.Title}</span>
       </div>
-      <div class="queue-submitter">Submitted by ${element.submittedBy}</div>
+      <div class="queue-submitter">Submitted by ${element.SubmittedBy}</div>
       </div>
-      <div class="queue-duration">${element.duration} </div>
+      <div class="queue-duration">${element.Duration} </div>
       
       `;
     }
