@@ -6,7 +6,7 @@
  without directly writing SQL queries in our route handlers.
  We will use this model in our auth routes to handle login and logout functionality.
 */
- const db = require("../database");
+ const db = require("../database/database");
 const bcrypt = require("bcrypt"); // for password hashing and comparison
 
 // The UserModel provides the following methods:

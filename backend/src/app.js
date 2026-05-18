@@ -10,7 +10,7 @@ or HTML files based on the route accessed by the client.
 // Import necessary modules and initialize the Express application
 const express = require("express");
 const path = require("path");
-const db = require("./database");
+const db = require("./database/database");
 const authRoutes = require("./routes/auth");
 const app = express();
 

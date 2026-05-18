@@ -1,4 +1,4 @@
-const db = require("../database");
+const db = require("../database/database");
 
 const PlaylistModel = {
   // 1. Get Songs in a Playlist from the database
