@@ -5,10 +5,25 @@ const submitTrackForm = document.getElementById("submitTrackForm");
 
 submitTrackForm.addEventListener("submit", submitTrack);
 
-function submitTrack(event) {
+async function submitTrack(event) {
   event.preventDefault(); //stop the form to refresh the page and go back to the to
 
   const url = document.getElementById("trackURL").value.trim(); // trim to delete whitespaces
+  const token = localStorage.getItem("token");
+  const res = await fetch("/api/queue/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ VideoURL: url }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    alert(data.message || "Failed to submit track. Please try again.");
+    return;
+  } 
 
   alert("Track submitted to queue!");
 

@@ -10,9 +10,12 @@ or HTML files based on the route accessed by the client.
 // Import necessary modules and initialize the Express application
 const express = require("express");
 const path = require("path");
-const db = require("./database/database");
 const authRoutes = require("./routes/auth");
 const app = express();
+const PlaylistModel = require("./models/playlistModel");
+const { authenticate } = require("./middleware/authorization");
+const { getVideoInfo } = require("./services/youtube");
+const { url } = require("inspector");
 
 const frontendPath = path.join(__dirname, "..", "..", "frontend");
 
@@ -33,54 +36,46 @@ app.get("/admin", (req, res) => {
 
 // API route to fetch the current playlist from the database
 app.get("/api/queue", (req, res) => {
-  const sql = "SELECT * FROM PlaylistsTable";
+  PlaylistModel.getSongsInPlaylist();
   try {
-    const rows = db.prepare(sql).all();
-    res.json(rows);
+    const songs = PlaylistModel.getSongsInPlaylist();
+    res.json(songs);
   } catch (err) {
-    res.status(500).json({ error: "Error" });
+    console.error("Error fetching queue:", err);
+    res.status(500).json({ error: "Failed to fetch queue" });
   }
 });
 
-// Simple session management for demonstration purposes
-// The login route checks the provided username and password against
-// the database and updates the session state accordingly
-
-/* --- OLD CODE ---
-let sessionLoggedIn = false;
-app.post("/api/login", express.json(), async (req, res) => {
-  const { username, password } = req.body;
-  const sql = "SELECT * FROM UsersTable WHERE Username = ? AND Password = ?";
+// API route to submit a new track to the queue, protected by authentication middleware
+app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => {
+  const { VideoURL } = req.body;
+ 
+  if (!VideoURL) {
+    return res.status(400).json({ error: "VideoURL is required" });
+  }
+ 
   try {
-    const row = await db.get(sql, [username, password]);
-    if (row) {
-      sessionLoggedIn = true;
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ success: false });
-    }
+    const videoInfo = await getVideoInfo(VideoURL);
+    PlaylistModel.addSongToPlaylist({
+      Title: videoInfo.title,
+      Channel: videoInfo.channel,
+      Duration: videoInfo.duration,
+      VideoURL: videoInfo.videoURL,
+      SubmittedBy: req.user.username,
+    });
+    res.status(201).json({ message: "Song added to queue" });
   } catch (err) {
-    res.status(500).json({ error: "Error" });
+    console.error("Error adding song:", err);
+    res.status(500).json({ error: "Failed to add song" });
   }
 });
-app.get("/api/user", (req, res) => {
-  res.json({
-    isLoggedIn: sessionLoggedIn,
-    username: "User",
-    role: "Admin",
-  });
-});
-app.post("/api/logout", (req, res) => {
-  sessionLoggedIn = false;
-  res.json({ success: true });
-});
---- NEW CODE --- */
-const { authenticate } = require("./middleware/authorization");
+
+// API route to get the current user's information, protected by authentication middleware
 app.get("/api/user/me", authenticate, (req, res) => {
   res.json({
     isLoggedIn: true,
-    username: req.user.Username,
-    role: req.user.Role,
+    username: req.user.username,
+    role: req.user.role,
   });
 });
 module.exports = app;

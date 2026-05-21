@@ -1,37 +1,105 @@
 /* for volume control and now playing content 
 actual playback will be handled by backend/integration 
 */
+let player; // the YouTube IFrame Player instance
+let queue = []; // all songs fetched from the backend
+let currentIndex = 0; // index of the currently playing song
 
-document.addEventListener("DOMContentLoaded", function () {
+// This function is called by the YouTube IFrame API when it's ready
+function onYouTubeIframeAPIReady() {
+  loadQueueThenPlay();
+}
+
+async function loadQueueThenPlay() {
+  // Fetch the queue from the backend
+  const res = await fetch("/api/queue");
+  queue = await res.json();
+
+  if (queue.length === 0) {
+    document.getElementById("nowPlayingTitle").textContent = "Queue is empty";
+    return;
+  }
+
+  const videoId = extractVideoId(queue[0].VideoURL);
+
+  // Create the YouTube IFrame Player inside the #youtubePlayer div
+  player = new YT.Player("youtubePlayer", {
+    width: "100%",
+    height: "100%",
+    videoId: videoId,
+    playerVars: {
+      autoplay: 0, // don't autoplay on load, wait for user interaction
+      controls: 1, // show YouTube controls
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+    },
+  });
+}
+
+// Called once the player is fully initialized and ready to play
+function onPlayerReady() {
   showCurrentSong();
-  updateVolume(70);
-});
+  renderQueue();
+  // Set initial volume to match the slider
+  const slider = document.getElementById("volumeSlider");
+  player.setVolume(parseInt(slider.value));
+  updateVolume(); // Ensure the new video starts at the current volume  
+}
 
-/*Find the current song from the queue and puts its title & submitted by below the TV
-for integration/backend:
-pls call showCurrentSong() whenever the Websocket sends a new currentIndex 
-*/
+// Called whenever the player state changes (playing, paused, ended, etc.)
+function onPlayerStateChange(event) {
+  // YT.PlayerState.ENDED === 0 — fires when the current video finishes
+  if (event.data === YT.PlayerState.ENDED) {
+    currentIndex++;
+
+    // If there are no more songs, show a message and stop
+    if (currentIndex >= queue.length) {
+      document.getElementById("nowPlayingTitle").textContent = "Queue ended";
+      document.getElementById("nowPlayingSubmittedBy").textContent = "";
+      return;
+    }
+
+    // Load and play the next song
+    const videoId = extractVideoId(queue[currentIndex].VideoURL);
+    player.loadVideoById(videoId);
+
+    // Update the track info and queue list
+    showCurrentSong();
+    renderQueue();
+    const slider = document.getElementById("volumeSlider");
+    player.setVolume(parseInt(slider.value));
+    updateVolume(); // Ensure the new video starts at the current volume
+  }
+}
+
+// Extracts the YouTube video ID from a full URL
+// e.g. https://youtube.com/watch?v=abc123 → "abc123"
+function extractVideoId(url) {
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.hostname === "youtu.be") {
+      return urlObj.pathname.slice(1); // For short URLs like youtu.be/abc123
+    }
+    return urlObj.searchParams.get("v"); // For standard URLs like youtube.com/watch?v=abc123
+  } catch (e) {
+    console.error("Invalid URL:", url);
+    return null;
+  }
+}
 
 function showCurrentSong() {
-  const song = QUEUE[currentIndex];
+  const song = queue[currentIndex];
 
   if (!song) return; //if theres no song then stop
 
   const titleElement = document.getElementById("nowPlayingTitle");
-  if (titleElement) {
-    if (song.type === "adbreak") {
-      titleElement.textContent = "AD Break";
-    } else {
-      titleElement.textContent = song.title;
-    }
-  }
-
   const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
-  if (song.type === "video") {
-    submittedByElement.textContent = "Submitted by " + song.submittedBy;
-  } else {
-    submittedByElement.textContent = "";
-  }
+
+  titleElement.textContent = `${song.Title} - ${song.Channel}`;
+  submittedByElement.textContent = `Submitted by: ${song.SubmittedBy}`;
+  
 }
 
 // Initial volume display n also when moving the slider, the number and the color will also change depending on the slide volume value , e.g volume getting louder
@@ -42,6 +110,11 @@ function updateVolume() {
 
   slider.value = volume;
   document.getElementById("volumeValue").textContent = volume;
+
+  // Only set volume if the player is already initialized
+  if (player && player.setVolume) {
+    player.setVolume(volume);
+  }
 
   slider.style.background = `linear-gradient(
   to right,

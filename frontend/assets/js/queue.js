@@ -14,12 +14,7 @@ for integration+backend, call the renderQueue() everytime the currentIndex chang
 
 */
 
-//When the page load show the queue;
-document.addEventListener("DOMContentLoaded", function () {
-  renderQueue();
-});
-
-function renderQueue() {
+async function renderQueue() {
   const container =
     document.getElementById(
       "queueList",
@@ -33,7 +28,7 @@ function renderQueue() {
   /* we only choose 6 items after the currently playing song, 
     so we use currentIndex + 1 as the start so the current song is NOT!!! included. */
 
-  const visibleTrack = QUEUE.slice(currentIndex + 1, currentIndex + 7);
+  const visibleTrack = queue.slice(currentIndex + 1, currentIndex + 7);
 
   if (visibleTrack.length === 0) {
     container.innerHTML = `<span> No more items in the queue</span>`;
@@ -60,10 +55,10 @@ function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class= "queue-title-element">${element.title}</span>
+      <span class= "queue-title-element">${element.Title}</span>
       <span class= "ad-badge">AD</span>
       </div>
-      <div class="queue-adtext">${element.adText}</div>
+      <div class="queue-adtext">${element.AdText}</div>
       </div>
       
       `;
@@ -79,11 +74,11 @@ function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class="queue-title-element">${element.title}</span>
+      <span class="queue-title-element">${element.Title} - ${element.Channel}</span>
       </div>
-      <div class="queue-submitter">Submitted by ${element.submittedBy}</div>
+      <div class="queue-submitter">Submitted by ${element.SubmittedBy}</div>
       </div>
-      <div class="queue-duration">${element.duration} </div>
+      <div class="queue-duration">${element.Duration} </div>
       
       `;
     }
