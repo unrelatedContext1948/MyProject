@@ -14,15 +14,7 @@ for integration+backend, call the renderQueue() everytime the currentIndex chang
 
 */
 
-//When the page load show the queue;
-document.addEventListener("DOMContentLoaded", function () {
-  renderQueue();
-});
-
 async function renderQueue() {
-  const res = await fetch("/api/queue");
-  const QUEUE = await res.json();
-
   const container =
     document.getElementById(
       "queueList",
@@ -36,7 +28,7 @@ async function renderQueue() {
   /* we only choose 6 items after the currently playing song, 
     so we use currentIndex + 1 as the start so the current song is NOT!!! included. */
 
-  const visibleTrack = QUEUE.slice(currentIndex + 1, currentIndex + 7);
+  const visibleTrack = queue.slice(currentIndex + 1, currentIndex + 7);
 
   if (visibleTrack.length === 0) {
     container.innerHTML = `<span> No more items in the queue</span>`;
@@ -82,7 +74,7 @@ async function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class="queue-title-element">${element.Title}</span>
+      <span class="queue-title-element">${element.Title} - ${element.Channel}</span>
       </div>
       <div class="queue-submitter">Submitted by ${element.SubmittedBy}</div>
       </div>

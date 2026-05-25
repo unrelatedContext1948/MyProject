@@ -16,7 +16,7 @@ async function submitTrack(event) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ VideoURL: url }),
   });
 
   if (!res.ok) {

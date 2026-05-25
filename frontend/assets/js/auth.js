@@ -67,8 +67,8 @@ async function handleLogin(event) {
   const token = data.token;
 
   // ave token and role in localStorage for persistence across pages and sessions
-  localStorage.setItem("role", role);
   localStorage.setItem("token", token);
+  localStorage.setItem("role", role);
   localStorage.setItem("username", username);
 
   // update the AuthState object to reflect the current user's authentication status and role.
@@ -83,6 +83,8 @@ async function handleLogin(event) {
   closeLoginModal();
   showRole(role);
 }
+
+
 
 //Role bagde next to logout button after succesfully logging in
 function showRole(role) {
@@ -128,7 +130,7 @@ async function logout() {
 
   // Clear localStorage and reset AuthState to reflect that the user is no longer authenticated.
   localStorage.clear();
-  
+
   if (typeof AuthState !== "undefined") {
     AuthState.user = null;
     AuthState.role = null;
