@@ -3,7 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>HumanMusic - Admin Page</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/adminpage/admin.css" />
   </head>
-  <body></body>
+
+  <body>
+    <!--Navbar-->
+    <nav class="navbar">
+      <div class="navbar-content">
+        <a class="navbar-logo" href="admin.html">
+          <h1 class="logo-title">HumanMusic</h1>
+        </a>
+        <div class="navbar-right">
+          <div class="live-badge">
+            <div class="live-dot"></div>
+            <span class="live-text">Live</span>
+          </div>
+          <div class="user-role">Admin</div>
+          <a href="index.html" class="btn btn-primary">Logout</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="admin-container">
+      <div class="admin-content">
+        <div class="admin-header">
+          <h2>Admin Dashboard</h2>
+          <p>Manage users, ad break approvals and content</p>
+          <!--start branch from here-->
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/adminpage/admindata.js"></script>
+  </body>
 </html>
