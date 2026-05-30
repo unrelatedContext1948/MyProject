@@ -276,6 +276,7 @@ textarea.form-input {
 
 .btn-submit.primary {
   background-color: var(--sage-600);
+  border: 1px solid var(--sage-600);
   color: #ffff;
 }
 

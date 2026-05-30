@@ -6,6 +6,8 @@
     <title>HumanMusic - Admin Page</title>
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/adminpage/admin.css" />
+    <!--Feathericons for the icon :p -->
+    <script src="https://unpkg.com/feather-icons"></script>
   </head>
 
   <body>
@@ -33,9 +35,97 @@
           <p>Manage users, ad break approvals and content</p>
           <!--start branch from here-->
         </div>
+
+        <!--First row: Submit Youtube links + submit ad break side by side-->
+        <div class="admin-grid">
+          <!--Submit Youtube links -->
+          <div class="admin-box">
+            <div class="admin-box-header">
+              <i data-feather="youtube"></i>
+              <h3>Submit Youtube Link</h3>
+            </div>
+            <form id="adminsubmitTrackForm">
+              <div class="form-element">
+                <label class="form-title">Youtube URL</label>
+                <input
+                  type="url"
+                  id="adminTrackURL"
+                  class="form-input"
+                  placeholder="https://youtube.com/watch?v=..."
+                  required
+                />
+              </div>
+              <div class="form-row">
+                <div class="form-element">
+                  <label class="form-title">Start Time (optional)</label>
+                  <input
+                    type="text"
+                    id="adminStartTime"
+                    class="form-input"
+                    placeholder="33:10 or 01:33:10"
+                  />
+                  <p class="form-hint">Format: MM::SS or HH:MM:SS</p>
+                </div>
+                <div class="form-element">
+                  <label class="form-title">End Time (optional)</label>
+                  <input
+                    type="text"
+                    id="adminEndTime"
+                    class="form-input"
+                    placeholder="38:45 or 01:38:45"
+                  />
+                  <p class="form-hint">Format: MM::SS or HH:MM:SS</p>
+                </div>
+              </div>
+              <button type="submit" class="btn-submit primary">
+                Add to Queue
+              </button>
+            </form>
+          </div>
+
+          <!--Submit Ad break, no approval needed-->
+          <div class="admin-box">
+            <div class="admin-box-header-ad">
+              <i data-feather="message-circle"></i>
+              <h3>Submit Ad Break Text</h3>
+            </div>
+            <form id="adminSubmitAdBreakForm">
+              <div class="form-element">
+                <label class="form-title">Ad Break Text</label>
+                <textarea
+                  id="adminAdText"
+                  class="form-input"
+                  rows="5"
+                  placeholder="Enter text for AI-Voiced Ad break between 300 and 500 characters"
+                  minlength="300"
+                  maxlength="500"
+                  required
+                ></textarea>
+                <p class="form-hint">
+                  Text will be converted to audio and added directly to queue
+                </p>
+              </div>
+              <button type="submit" class="btn-submit ad">
+                Add Ad Break to Queue
+              </button>
+            </form>
+          </div>
+          <!--admin grid-->
+        </div>
+
+        <!--admin content-->
       </div>
+      <!--admin container-->
     </div>
 
+    <!--Syaloom JS-->
     <script src="assets/js/adminpage/admindata.js"></script>
+
+    <!--Fernando JS, if needed -->
+
+    <!--Feathericons JS-->
+    <script>
+      feather.replace();
+    </script>
   </body>
 </html>
