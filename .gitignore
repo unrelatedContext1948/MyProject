@@ -1,3 +1,4 @@
 node_modules/
 .env
 *.exe
+backend/src/database/database.db

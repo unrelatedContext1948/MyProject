@@ -22,8 +22,10 @@ async function loadUserData() {
   const data = await response.json();
 
   // Update the UI based on the backend data
-  document.getElementById("userRoleDisplay").textContent = `Role: ${data.role}`;
+  document.getElementById("userRoleDisplay").textContent =
+    document.getElementById("userRoleDisplay").textContent =
+      data.role === "admin" ? "Admin" : "User";
   document.getElementById("navLoggedIn").classList.remove("hidden");
   document.getElementById("loginBtn").classList.add("hidden");
 }
-
+loadUserData(); // Call the function to load user data when the page loads

@@ -14,6 +14,8 @@ const authRoutes = require("./routes/auth");
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
 const { authenticate } = require("./middleware/authorization");
+const { getVideoInfo } = require("./services/youtube");
+const { url } = require("inspector");
 
 const frontendPath = path.join(__dirname, "..", "..", "frontend");
 
@@ -34,7 +36,7 @@ app.get("/admin", (req, res) => {
 
 // API route to fetch the current playlist from the database
 app.get("/api/queue", (req, res) => {
-  PlaylistModel.getSongsInPlaylist(PlaylistModel.CURRENT_PLAYLIST_ID);
+  PlaylistModel.getSongsInPlaylist();
   try {
     const songs = PlaylistModel.getSongsInPlaylist();
     res.json(songs);
@@ -45,7 +47,7 @@ app.get("/api/queue", (req, res) => {
 });
 
 // API route to submit a new track to the queue, protected by authentication middleware
-app.post("/api/queue/submit", express.json(), authenticate, (req, res) => {
+app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => {
   const { VideoURL } = req.body;
  
   if (!VideoURL) {
@@ -53,11 +55,12 @@ app.post("/api/queue/submit", express.json(), authenticate, (req, res) => {
   }
  
   try {
+    const videoInfo = await getVideoInfo(VideoURL);
     PlaylistModel.addSongToPlaylist({
-      Title: VideoURL,      // Placeholder — in a real implementation, you would extract the title from the YouTube API using the VideoURL
-      Channel: "Unknown",
-      Duration: "--:--",
-      VideoURL,
+      Title: videoInfo.title,
+      Channel: videoInfo.channel,
+      Duration: videoInfo.duration,
+      VideoURL: videoInfo.videoURL,
       SubmittedBy: req.user.username,
     });
     res.status(201).json({ message: "Song added to queue" });
@@ -71,8 +74,8 @@ app.post("/api/queue/submit", express.json(), authenticate, (req, res) => {
 app.get("/api/user/me", authenticate, (req, res) => {
   res.json({
     isLoggedIn: true,
-    username: req.user.Username,
-    role: req.user.Role,
+    username: req.user.username,
+    role: req.user.role,
   });
 });
 module.exports = app;

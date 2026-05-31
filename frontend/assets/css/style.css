@@ -130,6 +130,7 @@ body {
   cursor: pointer;
   border: none;
   transition: background-color 0.2s;
+  text-decoration: none;
 }
 .btn-primary {
   background-color: var(--sage-600);
@@ -275,6 +276,7 @@ textarea.form-input {
 
 .btn-submit.primary {
   background-color: var(--sage-600);
+  border: 1px solid var(--sage-600);
   color: #ffff;
 }
 
@@ -293,5 +295,5 @@ textarea.form-input {
 }
 
 .input-error {
-    border: 2px solid red !important;
+  border: 2px solid red !important;
 }
