@@ -11,6 +11,7 @@ or HTML files based on the route accessed by the client.
 const express = require("express");
 const path = require("path");
 const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/users");
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
 const { authenticate } = require("./middleware/authorization");
@@ -24,6 +25,9 @@ app.use("/", express.static(frontendPath));
 
 // Use the authentication routes defined in routes/auth.js for any requests to /api/auth
 app.use("/api/auth", authRoutes);
+
+// User management route
+app.use("/api/users", express.json(), userRoutes);
 
 // Define routes for serving HTML files and handling API requests
 app.get("/", (req, res) => {
