@@ -32,7 +32,7 @@
       <div class="admin-content">
         <div class="admin-header">
           <h2>Admin Dashboard</h2>
-          <p>Manage users, ad break approvals and content</p>
+          <p>Manage users, ad break approvals and content submission</p>
           <!--start branch from here-->
         </div>
 
@@ -64,7 +64,7 @@
                     class="form-input"
                     placeholder="33:10 or 01:33:10"
                   />
-                  <p class="form-hint">Format: MM::SS or HH:MM:SS</p>
+                  <p class="form-hint">Format: MM:SS or HH:MM:SS</p>
                 </div>
                 <div class="form-element">
                   <label class="form-title">End Time (optional)</label>
@@ -74,7 +74,7 @@
                     class="form-input"
                     placeholder="38:45 or 01:38:45"
                   />
-                  <p class="form-hint">Format: MM::SS or HH:MM:SS</p>
+                  <p class="form-hint">Format: MM:SS or HH:MM:SS</p>
                 </div>
               </div>
               <button type="submit" class="btn-submit primary">
@@ -113,6 +113,64 @@
           <!--admin grid-->
         </div>
 
+        <!--Second row, create new user -->
+        <div class="admin-box admin-box-full">
+          <div class="admin-box-header">
+            <i data-feather="user-plus"></i>
+            <h3>Create New User</h3>
+          </div>
+          <form id="createUserForm" class="create-user-form">
+            <div class="form-row">
+              <div class="form-element">
+                <label class="form-title">Username</label>
+                <input
+                  type="text"
+                  id="newUsername"
+                  class="form-input"
+                  placeholder="Enter username"
+                  required
+                />
+                <p id="usernameError" class="form-error"></p>
+              </div>
+              <div class="form-element">
+                <label class="form-title password-popup"
+                  >Password
+                  <div class="password-info">
+                    <i data-feather="info"></i>
+                    <div class="password-hint-box">
+                      <p class="password-hint-title">Password must contain:</p>
+                      <ul>
+                        <li>At least 8 characters</li>
+                        <li>Different from username</li>
+                        <li>At least one special character</li>
+                        <li>At least one number</li>
+                      </ul>
+                    </div>
+                  </div>
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  class="form-input"
+                  placeholder="Enter password"
+                  required
+                />
+                <p id="passwordError" class="form-error"></p>
+              </div>
+              <div class="form-element">
+                <label class="form-title">Role</label>
+                <select id="newRole" class="form-input">
+                  <option value="Authorized User">Authorized User</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-submit primary">
+              Create User
+            </button>
+          </form>
+        </div>
+
         <!--admin content-->
       </div>
       <!--admin container-->
@@ -121,6 +179,7 @@
     <!--Syaloom JS-->
     <script src="assets/js/adminpage/admindata.js"></script>
     <script src="assets/js/adminpage/adminsubmitforms.js"></script>
+    <script src="assets/js/adminpage/adminusers.js"></script>
 
     <!--Fernando JS, if needed -->
 

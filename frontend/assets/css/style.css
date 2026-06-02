@@ -297,3 +297,9 @@ textarea.form-input {
 .input-error {
   border: 2px solid red !important;
 }
+
+.form-error {
+  margin: 0.4rem 0 0;
+  font-size: 0.76rem;
+  color: red;
+}
