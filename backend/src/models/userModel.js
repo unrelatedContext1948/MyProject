@@ -33,8 +33,44 @@ const UserModel = {
         const sql = "SELECT UserID, Username, Role FROM UsersTable WHERE Token = ?";
         return db.prepare(sql).get(token);
     },
+    
+     // 4. Get all users - used for admin user list
+    getAllUsers: () => {
+        const sql = `
+        SELECT UserID, Username, Role, JoinDate 
+        FROM UsersTable 
+        ORDER BY JoinDate DESC
+        `;
+        return db.prepare(sql).all();
+    },
+
+    // 5. Create user - used when admin adds a new user
+    createUser: (username, hashedPassword, role, joinDate) => {
+        const sql = `
+        INSERT INTO UsersTable
+        (Username, Password, JoinDate, Role)
+        VALUES (?, ?, ?, ?)
+        `;
+        return db.prepare(sql).run(
+            username,
+            hashedPassword,
+            joinDate,
+            role
+        );
+    },
+
+    // 6. Delete user - used when admin removes a user
+    deleteUser: (userID) => {
+        const sql = `
+        DELETE FROM UsersTable
+        WHERE UserID = ?
+        `;
+        return db.prepare(sql).run(userID);
+    }
 
 };
 
 module.exports = UserModel;
+
+
 

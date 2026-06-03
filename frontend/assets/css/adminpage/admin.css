@@ -29,6 +29,9 @@
   margin-bottom: 1.5rem;
 }
 
+/*To adjust the boxes when the screen is smaller than 1024px,
+ ad break form will be displayed below the youtube form
+ */
 @media (min-width: 1024px) {
   .admin-grid {
     grid-template-columns: 1fr 1fr;
@@ -36,6 +39,21 @@
 }
 
 /* Box */
+.admin-box-full {
+  margin-bottom: 1.5rem;
+}
+
+/*Create user form: fields side by side on desktop*/
+.create-user-form .form-row {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width: 1024px) {
+  .create-user-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-box {
   background-color: var(--white);
   border: 1px solid var(--sage-300);
@@ -67,4 +85,63 @@
   width: 20px;
   height: 20px;
   color: var(--terracotta);
+}
+
+/*Password info popup and criteria */
+.password-popup {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.password-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.password-info svg {
+  width: 14px;
+  height: 14px;
+  color: var(--sage600);
+  cursor: pointer;
+}
+.password-hint-box {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 260px;
+  background-color: var(--white);
+  border: 1px solid var(--sage-300);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--sage-700);
+  z-index: 10;
+}
+
+.password-hint-title {
+  margin: 0 0 0.4rem;
+  font-weight: 500;
+  color: var(--sage-900);
+}
+
+.password-hint-box ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-weight: 400;
+}
+
+.password-hint-box li {
+  margin-bottom: 0.15rem;
+}
+
+.password-info:hover .password-hint-box {
+  display: block;
+}
+
+.username-hint-ttle {
+  margin: 0 0 0 0.4rem;
+  color: var(--sage-900);
 }
