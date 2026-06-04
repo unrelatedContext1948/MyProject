@@ -145,3 +145,26 @@ function hasSpecialCharacter(password) {
   }
   return false;
 }
+
+//Toggle password visibility
+
+const passwordInput = document.getElementById("newPassword");
+const togglePassword = document.getElementById("togglePassword");
+const eyeIcon = document.getElementById("eyeIcon");
+const eyeIconOff = document.getElementById("eyeIconOff");
+
+if (passwordInput && togglePassword && eyeIcon && eyeIconOff) {
+  togglePassword.addEventListener("click", function () {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      eyeIcon.classList.add("hidden");
+      eyeIconOff.classList.remove("hidden");
+      togglePassword.classList.add("active");
+    } else {
+      passwordInput.type = "password";
+      eyeIcon.classList.remove("hidden");
+      eyeIconOff.classList.add("hidden");
+      togglePassword.classList.remove("active");
+    }
+  });
+}

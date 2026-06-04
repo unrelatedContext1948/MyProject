@@ -303,3 +303,43 @@ textarea.form-input {
   font-size: 0.76rem;
   color: red;
 }
+
+/*Toggle Password*/
+.password-input-element {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-element .form-input {
+  width: 100%;
+  padding-right: 2.8rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--sage-300);
+  cursor: pointer;
+}
+
+.password-eye-icon {
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.password-toggle:hover {
+  color: var(--sage-600);
+}
+
+.password-toggle.active {
+  color: var(--sage-600);
+}

@@ -148,13 +148,23 @@
                     </div>
                   </div>
                 </label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  class="form-input"
-                  placeholder="Enter password"
-                  required
-                />
+                <div class="password-input-element">
+                  <input
+                    type="password"
+                    id="newPassword"
+                    class="form-input"
+                    placeholder="Enter password"
+                    required
+                  />
+                  <span id="togglePassword" class="password-toggle">
+                    <span id="eyeIcon" class="password-eye-icon">
+                      <i data-feather="eye"></i>
+                    </span>
+                    <span id="eyeIconOff" class="password-eye-icon hidden">
+                      <i data-feather="eye-off"></i>
+                    </span>
+                  </span>
+                </div>
                 <p id="passwordError" class="form-error"></p>
               </div>
               <div class="form-element">
