@@ -3,7 +3,7 @@ const db = require("../database/database");
 const PlaylistModel = {
   // 1. Get Songs in a Playlist from the database
   getSongsInPlaylist: () => {
-    const sql = `SELECT * FROM playlistsTable`;
+    const sql = `SELECT * FROM PlaylistsTable`;
     return db.prepare(sql).all();
   },
 
