@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const PlaylistModel = require('../models/playlistModel');
-const QueueManager = require('../models/queue');
 
 class Queue extends EventEmitter {
   constructor(playlistID) {
@@ -74,3 +73,4 @@ class Queue extends EventEmitter {
         }
     }
 }  
+module.exports = Queue;
