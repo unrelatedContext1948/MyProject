@@ -27,7 +27,7 @@ const authenticate = (req, res, next) => {
   //if no user matches the token, deny their acces
   if (!user) {
     return res.status(401).json({
-      message: "Invalid or expired token",
+      message: "Invalid or expired token", //Fira: rephrase the expired part. "DELETE".
     });
   }
 
