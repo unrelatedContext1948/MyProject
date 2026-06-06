@@ -1,5 +1,5 @@
 const express = require("express");
-const bcrypt = require("bcrypt");
+const { hashPassword } = require("../middleware/hashPassword");
 
 const UserModel = require("../models/userModel");
 const { authenticate, authorize } = require("../middleware/authorization");
@@ -27,7 +27,7 @@ Only admin can access this function
 */
 //authenticate() verifies the user's token
 //authorize ("admin") ensures only admins can access this route
-router.post("/", authenticate, authorize("admin"), (req, res) => {
+router.post("/", authenticate, authorize("admin"), async (req, res) => {
     const { username, password, role } = req.body;
 
     if(!username || !password || !role) {
@@ -85,7 +85,7 @@ router.post("/", authenticate, authorize("admin"), (req, res) => {
 
     try{
         //hash the passwords before storing into DB
-        const hashedPassword = bcrypt.hashSync(password, 10); 
+        const hashedPassword = await hashPassword(password);
         //store the account creation date in YYYY-MM-DD format
         const joinDate = new Date().toISOString().split("T")[0]; 
         UserModel.createUser(

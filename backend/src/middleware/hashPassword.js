@@ -3,15 +3,10 @@
 const db = require('../database/database');
 const bcrypt = require('bcrypt');
 
-
+// Hash password before storing it in database
 async function hashPassword(password, userID) {
-    
-    //Hash the password.
-    let hashedPassword = await bcrypt.hash(password, 10)
+    return await bcrypt.hash(password, 10);
 
-    //Keep the hash password in database.
-    db.prepare("UPDATE UsersTable SET Password = ? WHERE UserID = ?")
-    .run(hashedPassword, userID);
-
-    console.log("Password has been hashed for userID: " + userID);  
 }
+
+module.exports = { hashPassword };
