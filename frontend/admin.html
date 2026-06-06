@@ -36,7 +36,7 @@
           <!--start branch from here-->
         </div>
 
-        <!--First row: Submit Youtube links + submit ad break side by side-->
+        <!--Row 1: Submit Youtube links + submit ad break side by side-->
         <div class="admin-grid">
           <!--Submit Youtube links -->
           <div class="admin-box">
@@ -113,7 +113,7 @@
           <!--admin grid-->
         </div>
 
-        <!--Second row, create new user -->
+        <!--Row 2 : create new user -->
         <div class="admin-box admin-box-full">
           <div class="admin-box-header">
             <i data-feather="user-plus"></i>
@@ -181,6 +181,18 @@
           </form>
         </div>
 
+        <!--Row 3 : Ad break approval-->
+        <div class="admin-box admin-box-full">
+          <div class="admin-box-header-ad">
+            <i data-feather="message-square"></i>
+            <h3>Pending Ad Break Approvals</h3>
+          </div>
+
+          <div class="pending-list" id="pendingList">
+            <!-- adminPendingAdbreaks.js -->
+          </div>
+        </div>
+
         <!--admin content-->
       </div>
       <!--admin container-->
@@ -190,6 +202,7 @@
     <script src="assets/js/adminpage/admindata.js"></script>
     <script src="assets/js/adminpage/adminsubmitforms.js"></script>
     <script src="assets/js/adminpage/adminusers.js"></script>
+    <script src="assets/js/adminpage/adminPendingAdbreaks.js"></script>
 
     <!--Fernando JS, if needed -->
 
