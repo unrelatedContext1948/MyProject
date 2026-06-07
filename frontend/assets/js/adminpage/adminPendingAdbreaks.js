@@ -67,7 +67,7 @@ function renderPendingAdBreaks() {
 //to approve an adbreak (when approve button clicked)
 function approveAdBreak(id) {
   /* integration/backend add API method POST here to tell server that ad was being approved
-    if respon ok then call the function fadeOutRenderAgain(id);
+    if respond ok then call the function fadeOutRenderAgain(id);
   */
 
   //this is only for UI dummy data, can be deleted after it's already connected to the backend
@@ -85,7 +85,7 @@ function approveAdBreak(id) {
 //to reject an adbreak (when reject button clicked)
 function rejectAdBreak(id) {
   /* integration/backend add API method POST here to tell server that ad was being rejected
-     if respon ok then call the function fadeOutRenderagain(id);
+     if respond ok then call the function fadeOutRenderAgain(id);
   */
 
   //this is only for UI dummy data, can be deleted after it's already connected to the backend
@@ -100,7 +100,9 @@ function rejectAdBreak(id) {
   fadeOutAndRenderAgain(id);
 }
 
-//add animation: fade the box and then re-render
+/*add animation: fade the box and then re-render
+  always call this function after approve/reject button pressed
+*/
 function fadeOutAndRenderAgain(id) {
   const box = document.getElementById("adbreak-" + id);
 
