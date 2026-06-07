@@ -43,7 +43,7 @@ function renderPendingAdBreaks() {
     return element.status === "pending";
   });
 
-  //if there's nothing to show, display empty state
+  //if there's nothing to show
   if (pendingItems.length === 0) {
     container.innerHTML = "<p> No pending ad break submissions right now </p>";
     return;
