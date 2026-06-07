@@ -4,6 +4,17 @@
 -Reject button
 */
 
+/*we will limit the display of the adbreak with maximum of 3
+  if we have more than 3, we will show "show more" button and "show less"
+
+  imagine if we have 15 pending Ad Breaks, then it will be superlong list
+  not good for the user experience (UX)
+
+  for better visualization, go to admin.html right click then open with live server (not the localhost3000)
+*/
+const PENDING_AD_BREAKS_LIMIT = 3;
+let pendingVisible = PENDING_AD_BREAKS_LIMIT;
+
 //when the page loads, it will automatically shows the pending list
 document.addEventListener("DOMContentLoaded", function () {
   renderPendingAdBreaks();
@@ -14,10 +25,12 @@ document.addEventListener("DOMContentLoaded", function () {
 //find the container on the admin page.html
 function renderPendingAdBreaks() {
   const container = document.getElementById("pendingList");
-  if (!container) return;
+  const footer = document.getElementById("pendingFooter");
+  if (!container || !footer) return;
 
   //clear whatever was there before
   container.innerHTML = "";
+  footer.innerHTML = "";
 
   //Backend/integration will replace this with real data from database:
 
@@ -36,8 +49,14 @@ function renderPendingAdBreaks() {
     return;
   }
 
+  //only show pending items up to pendingVisible
+  const visiblePendingItems = pendingItems.slice(0, pendingVisible);
+
+  //how many pending items are still hidden
+  const remaining = pendingItems.length - pendingVisible;
+
   //for each index of the array, do this function
-  pendingItems.forEach(displayAdBreak);
+  visiblePendingItems.forEach(displayAdBreak);
 
   //element and index are provided
   function displayAdBreak(element, index) {
@@ -62,6 +81,35 @@ function renderPendingAdBreaks() {
     container.appendChild(box);
   }
   feather.replace();
+
+  //only show more/less button if there are more than 3 pending items
+  if (pendingItems.length <= PENDING_AD_BREAKS_LIMIT) return;
+
+  if (remaining > 0) {
+    footer.innerHTML = `
+   <button class="pending-toggle-btn" onclick="showMorePendingAdBreaks()">Show more submissions</button>
+  `;
+  } else {
+    footer.innerHTML = `
+    <button class="pending-toggle-btn pending-toggle-less" onclick="showLessPendingAdBreaks()">Show less</button>
+    `;
+  }
+}
+
+//show more adbreaks function
+function showMorePendingAdBreaks() {
+  const pendingItems = PENDING_AD_BREAKS.filter(function (element) {
+    return element.status === "pending";
+  });
+
+  pendingVisible = pendingItems.length;
+  renderPendingAdBreaks();
+}
+
+//show less adbreaks function
+function showLessPendingAdBreaks() {
+  pendingVisible = PENDING_AD_BREAKS_LIMIT;
+  renderPendingAdBreaks();
 }
 
 //to approve an adbreak (when approve button clicked)
@@ -85,7 +133,7 @@ function approveAdBreak(id) {
 //to reject an adbreak (when reject button clicked)
 function rejectAdBreak(id) {
   /* integration/backend add API method POST here to tell server that ad was being rejected
-     if respond ok then call the function fadeOutRenderAgain(id);
+     if respond ok then call the function fadeOutAndRenderAgain(id);
   */
 
   //this is only for UI dummy data, can be deleted after it's already connected to the backend
