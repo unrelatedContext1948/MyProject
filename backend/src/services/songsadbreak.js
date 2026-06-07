@@ -7,15 +7,14 @@ const songsAdbreak = {
         return db.prepare(sql).all();
     },
 
-    // 2. Add an ad break to the database
-    addAdBreak: (adData) => {
-        const { username, adBreakText } = adData;
+    // 2. Add an ad break to the database.
+    addAdBreak: (adBreakTitle, username, adBreakText) => {
         const sql = `
             INSERT INTO AdBreaksTable (AdBreakTitle, SubmittedBy, AdBreakText, AdBreakURL, Status) 
-            VALUES (?, ?, ?, ?, 'pending')
+            VALUES (?, ?, ?, ?, ?)
         `;
-
-        return db.prepare(sql).run(adBreakText, username, 'pending');
+        return db.prepare(sql).run(adBreakTitle, username, adBreakText, '', 'pending');
     },
+  
 }
 module.exports = songsAdbreak;
