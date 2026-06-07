@@ -177,3 +177,71 @@
   display: flex;
   gap: 0.75rem;
 }
+
+/* User table */
+.user-table {
+  width: 100%;
+  border: collapse;
+  table-layout: fixed;
+}
+.user-table th {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--sage-300);
+  font-weight: 500;
+}
+
+.user-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--sage-300);
+}
+
+.user-table tr:last-child td {
+  border-bottom: none;
+}
+
+/*Show more / show less button */
+.user-table-footer {
+  padding-top: 0.75rem;
+}
+
+.user-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-table-info {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sage-600);
+}
+.user-toggle-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: var(--sage-600);
+  color: var(--white);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-toggle-btn:hover {
+  background-color: var(--sage-700);
+  border: none;
+  color: #fff;
+}
+
+.user-toggle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.role-badge {
+  background-color: var(--sage-100);
+  color: var(--sage-600);
+  font-size: 0.9rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 5px;
+  font-weight: 600;
+}
