@@ -18,7 +18,7 @@ const UserModel = {
         if (!user) {
             return null;
         }
-        const isMatch = (password === user.Password) || bcrypt.compareSync(password, user.Password); //FIRA: delete the left side bcs it it comparing the plain text.
+        const isMatch = (bcrypt.compareSync(password, user.Password);
         return isMatch ? user : null;
     },
 

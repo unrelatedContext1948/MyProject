@@ -30,6 +30,8 @@ async function loadQueueThenPlay() {
     playerVars: {
       autoplay: 0, // don't autoplay on load, wait for user interaction
       controls: 1, // show YouTube controls
+      fs: 0, // disable fullscreen button
+      disablekb: 1, // disable keyboard controls
     },
     events: {
       onReady: onPlayerReady,
@@ -41,11 +43,11 @@ async function loadQueueThenPlay() {
 // Called once the player is fully initialized and ready to play
 function onPlayerReady() {
   showCurrentSong();
-  renderQueue();
+  renderQueue(); // This is the function defined in queue.js that renders the next 6 songs in the queue
   // Set initial volume to match the slider
   const slider = document.getElementById("volumeSlider");
   player.setVolume(parseInt(slider.value));
-  updateVolume(); // Ensure the new video starts at the current volume  
+  updateVolume(); // Ensure the new video starts at the current volume
 }
 
 // Called whenever the player state changes (playing, paused, ended, etc.)
@@ -75,7 +77,6 @@ function onPlayerStateChange(event) {
 }
 
 // Extracts the YouTube video ID from a full URL
-// e.g. https://youtube.com/watch?v=abc123 → "abc123"
 function extractVideoId(url) {
   try {
     const urlObj = new URL(url);
@@ -99,7 +100,6 @@ function showCurrentSong() {
 
   titleElement.textContent = `${song.Title} - ${song.Channel}`;
   submittedByElement.textContent = `Submitted by: ${song.SubmittedBy}`;
-  
 }
 
 // Initial volume display n also when moving the slider, the number and the color will also change depending on the slide volume value , e.g volume getting louder
@@ -108,7 +108,6 @@ function updateVolume() {
 
   const volume = parseInt(slider.value);
 
-  slider.value = volume;
   document.getElementById("volumeValue").textContent = volume;
 
   // Only set volume if the player is already initialized

@@ -23,8 +23,7 @@ async function loadUserData() {
 
   // Update the UI based on the backend data
   document.getElementById("userRoleDisplay").textContent =
-    document.getElementById("userRoleDisplay").textContent =
-      data.role === "admin" ? "Admin" : "User";
+    data.role === "admin" ? "Admin" : "User";
   document.getElementById("navLoggedIn").classList.remove("hidden");
   document.getElementById("loginBtn").classList.add("hidden");
 }
