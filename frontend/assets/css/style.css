@@ -402,3 +402,39 @@ textarea.form-input {
 .password-toggle.active {
   color: var(--sage-600);
 }
+
+/*for tablets (<= 768px) */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-logo h1 {
+    font-size: 1rem;
+  }
+  /*tighten the modal padding*/
+  .modal-content {
+    padding: 1.25rem;
+  }
+}
+
+/*for mobile (<= 480px) */
+@media (max-width: 480px) {
+  .navbar-right {
+    gap: 0.5rem;
+  }
+
+  /*smaller button*/
+  .btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .modal {
+    padding: 0.5rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+  }
+}
