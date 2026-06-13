@@ -60,9 +60,7 @@ const visualizer = (() => {
             // Sage-green gradient matching the site palette
             const lightness = 35 + norm * 20;
             ctx.fillStyle = `hsla(140, 35%, ${lightness}%, 0.85)`;
-            ctx.beginPath();
-            ctx.roundRect(x + 2, y, Math.max(1, barW - 4), barH, 3);
-            ctx.fill();
+            ctx.fillRect(x + 2, y, Math.max(1, barW - 4), barH);
         }
 
         animationId = requestAnimationFrame(draw);
@@ -71,9 +69,11 @@ const visualizer = (() => {
     function resizeCanvas() {
         const { canvas } = getElements();
         if (!canvas) return;
-        const parent = canvas.parentElement;
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
+        // Measure from the tv-screen so we always get real pixel values,
+        // even if the overlay itself hasn't been laid out yet.
+        const screen = canvas.closest(".tv-screen") || canvas.parentElement;
+        canvas.width  = screen.clientWidth  || 560;
+        canvas.height = Math.round((screen.clientHeight || 315) * 0.55);
     }
 
     function show(adBreak) {
@@ -87,11 +87,15 @@ const visualizer = (() => {
         // Energy scales subtly with text length so longer ads feel more lively
         energy = adBreak ? Math.min(1.2, 0.7 + adBreak.AdBreakText.length / 2000) : 1;
 
-        resizeCanvas();
         overlay.classList.remove("hidden");
         overlay.classList.add("ad-break-visible");
 
-        if (!animationId) draw();
+        // Wait one frame so the browser finishes layout (going from display:none
+        // → display:flex) before measuring canvas dimensions.
+        requestAnimationFrame(() => {
+            resizeCanvas();
+            if (!animationId) draw();
+        });
     }
 
     function hide() {
