@@ -1,89 +1,67 @@
-/* this is for 2 things: 
-1. Shows the queue (always 6 items after from the current song)
-2. Handles the submit song and submit ad break forms , lol sorrry i forgot to mention it in the file name */
+/*
+Queue display – renders the "Up Next" list (max 6 items).
 
-/* Render queue function, to display the queue lists on the page
+Uses `mergedQueue` from player.js, which already contains ad-break
+placeholders inserted by the server at the right positions.
 
-so it's kinda like a sliding window
-
-we always show 6 items:
-we start from the song after the currently playing, coz currently playing will be displayed belo the TV and not in the list
-when the current song change, this function will run again, and repeat
-
-for integration+backend, call the renderQueue() everytime the currentIndex changes.
-
+Call renderQueue() whenever currentIndex or mergedQueue changes.
 */
 
-async function renderQueue() {
-  const container =
-    document.getElementById(
-      "queueList",
-    ); /* find the id queueList on the HTML */
+function renderQueue() {
+    const container = document.getElementById("queueList");
+    if (!container) return;
 
-  if (!container) return; /* if the container doesn't exist then stop */
+    container.innerHTML = "";
 
-  container.innerHTML =
-    ""; /* clear whatever was there before, so theres no duplicate" */
+    // mergedQueue is the display queue (songs + ad-break entries) from the server.
+    // It already contains only the items after the currently playing song.
+    const visibleTracks = mergedQueue.slice(0, 6);
 
-  /* we only choose 6 items after the currently playing song, 
-    so we use currentIndex + 1 as the start so the current song is NOT!!! included. */
-
-  const visibleTrack = queue.slice(currentIndex + 1, currentIndex + 7);
-
-  if (visibleTrack.length === 0) {
-    container.innerHTML = `<span> No more items in the queue</span>`;
-    return;
-  }
-
-  //for each index of the array, do this function
-  visibleTrack.forEach(displayQueue);
-
-  //element, and index are provided
-  function displayQueue(element, index) {
-    const box = document.createElement("div");
-
-    box.className = "queue-element"; // give a class, so it can be styled in css
-    //adbreak box, with microphone logo
-    if (element.type === "adbreak") {
-      if (index === 0) {
-        box.className = "queue-element queue-adbreak-first"; //to style on the css
-      }
-
-      box.innerHTML = `
-      <div class="queue-icon ad"> 
-      <i data-feather="mic"></i>
-      </div>
-      <div class="queue-details">
-      <div class= "queue-title-box">
-      <span class= "queue-title-element">${element.Title}</span>
-      <span class= "ad-badge">AD</span>
-      </div>
-      <div class="queue-adtext">${element.AdText}</div>
-      </div>
-      
-      `;
-    } else {
-      //song  box, with music logo"
-      if (index === 0) {
-        box.className = "queue-element queue-song-first";
-      }
-
-      box.innerHTML = `
-      <div class="queue-icon song">
-      <i data-feather="music"></i>
-      </div>
-      <div class="queue-details">
-      <div class= "queue-title-box">
-      <span class="queue-title-element">${element.Title} - ${element.Channel}</span>
-      </div>
-      <div class="queue-submitter">Submitted by ${element.SubmittedBy}</div>
-      </div>
-      <div class="queue-duration">${element.Duration} </div>
-      
-      `;
+    if (visibleTracks.length === 0) {
+        container.innerHTML = `<span class="queue-empty">Queue is looping – hang tight!</span>`;
+        return;
     }
-    // add 'box' to the container
-    container.appendChild(box);
-  }
-  feather.replace(); // to change to svg icon (feather-icons)
+
+    visibleTracks.forEach(displayQueueItem);
+
+    function displayQueueItem(element, index) {
+        const box = document.createElement("div");
+        box.className = "queue-element";
+
+        if (element.type === "adbreak") {
+            if (index === 0) box.className += " queue-adbreak-first";
+
+            box.innerHTML = `
+                <div class="queue-icon ad">
+                    <i data-feather="mic"></i>
+                </div>
+                <div class="queue-details">
+                    <div class="queue-title-box">
+                        <span class="queue-title-element">${element.Title}</span>
+                        <span class="ad-badge">AD</span>
+                    </div>
+                    <div class="queue-adtext">${element.AdText || ""}</div>
+                </div>
+            `;
+        } else {
+            if (index === 0) box.className += " queue-song-first";
+
+            box.innerHTML = `
+                <div class="queue-icon song">
+                    <i data-feather="music"></i>
+                </div>
+                <div class="queue-details">
+                    <div class="queue-title-box">
+                        <span class="queue-title-element">${element.Title} - ${element.Channel}</span>
+                    </div>
+                    <div class="queue-submitter">Submitted by ${element.SubmittedBy}</div>
+                </div>
+                <div class="queue-duration">${element.Duration || ""}</div>
+            `;
+        }
+
+        container.appendChild(box);
+    }
+
+    feather.replace();
 }

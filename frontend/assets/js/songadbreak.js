@@ -1,48 +1,59 @@
-/* Submit Track Form : when the authorized user/admin submit youtube Link
-For Backend/integration replace the alert("Track submitted to queue!") with real API POST : URL, starttime endtime, submitted by */
-
+// Submit YouTube link (authorized users)
 const submitTrackForm = document.getElementById("submitTrackForm");
-
 submitTrackForm.addEventListener("submit", submitTrack);
 
 async function submitTrack(event) {
-  event.preventDefault(); //stop the form to refresh the page and go back to the to
+    event.preventDefault();
 
-  const url = document.getElementById("trackURL").value.trim(); // trim to delete whitespaces
-  const token = localStorage.getItem("token");
-  const res = await fetch("/api/queue/submit", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ VideoURL: url }),
-  });
+    const url = document.getElementById("trackURL").value.trim();
+    const token = localStorage.getItem("token");
 
-  if (!res.ok) {
+    const res = await fetch("/api/queue/submit", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ VideoURL: url }),
+    });
+
     const data = await res.json();
-    alert(data.message || "Failed to submit track. Please try again.");
-    return;
-  } 
 
-  alert("Track submitted to queue!");
+    if (!res.ok) {
+        alert(data.message || "Failed to submit track. Please try again.");
+        return;
+    }
 
-  event.target.reset(); // clear the form, so that it can be used for the next submission
+    alert("Track submitted to queue!");
+    event.target.reset();
 }
 
-/* Submit Ad Break Form : when the authorized user/admin submit youtube Link
-For Backend/integration replace alert("Ad Break submitted for approval!")with real API POST : adbreaktext, and submitted by */
-
+// Submit ad break text for admin approval (authorized users + admins)
 const submitAdBreakForm = document.getElementById("submitAdBreakForm");
-
 submitAdBreakForm.addEventListener("submit", submitAdBreak);
 
-function submitAdBreak(event) {
-  event.preventDefault();
+async function submitAdBreak(event) {
+    event.preventDefault();
 
-  const text = document.getElementById("adBreakText").value.trim();
+    const text = document.getElementById("adBreakText").value.trim();
+    const token = localStorage.getItem("token");
 
-  alert("Ad Break submitted for approval!");
+    const res = await fetch("/api/adbreaks/submit", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ adBreakText: text }),
+    });
 
-  event.target.reset();
+    const data = await res.json();
+
+    if (!res.ok) {
+        alert(data.message || "Failed to submit ad break. Please try again.");
+        return;
+    }
+
+    alert("Ad break submitted for admin approval!");
+    event.target.reset();
 }

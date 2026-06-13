@@ -1,39 +1,63 @@
-/* Admin submit form including :
-1. Submit Youtube Link with specified time stamp
-2. Submit Ad break (directly added to queue list after converted to audio)
-For Backend/integration replace the alert("Track submitted to queue!") with real API POST : URL, starttime endtime, submitted by 
-*/
-
-//Submit Youtube Link
+// Admin: Submit YouTube link with optional start/end time
 const adminSubmitTrackForm = document.getElementById("adminSubmitTrackForm");
-
 adminSubmitTrackForm.addEventListener("submit", adminSubmitTrack);
 
-function adminSubmitTrack(event) {
-  event.preventDefault(); //stop the form to refresh the page and go back to the top
+async function adminSubmitTrack(event) {
+    event.preventDefault();
 
-  const url = document.getElementById("adminTrackURL").value.trim(); // trim to delete whitespaces
-  const startTime = document.getElementById("adminStartTime").value.trim();
-  const endTime = document.getElementById("adminEndTime").value.trim();
+    const url = document.getElementById("adminTrackURL").value.trim();
+    const startTime = document.getElementById("adminStartTime").value.trim() || null;
+    const endTime = document.getElementById("adminEndTime").value.trim() || null;
+    const token = localStorage.getItem("token");
 
-  //For Backend/integration replace the alert("Track submitted to queue!") with real API POST : URL, starttime endtime, submitted by
-  alert("Track added to queue!");
+    const res = await fetch("/api/queue/submit", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ VideoURL: url, StartTime: startTime, EndTime: endTime }),
+    });
 
-  event.target.reset(); // clear the form, so that it can be used for the next submission
+    const data = await res.json();
+
+    if (!res.ok) {
+        alert(data.message || "Failed to add track. Please try again.");
+        return;
+    }
+
+    alert("Track added to queue!");
+    event.target.reset();
 }
 
-//Submit Ad Break
-const submitAdBreakForm = document.getElementById("adminSubmitAdBreakForm");
+// Admin: Submit ad break text directly (bypasses approval, goes to approved)
+const adminSubmitAdBreakForm = document.getElementById("adminSubmitAdBreakForm");
+adminSubmitAdBreakForm.addEventListener("submit", adminSubmitAdBreak);
 
-submitAdBreakForm.addEventListener("submit", adminSubmitAdBreak);
+async function adminSubmitAdBreak(event) {
+    event.preventDefault();
 
-function adminSubmitAdBreak(event) {
-  event.preventDefault();
+    const text = document.getElementById("adminAdText").value.trim();
+    const token = localStorage.getItem("token");
 
-  const text = document.getElementById("adminAdText").value.trim();
+    const res = await fetch("/api/adbreaks/submit", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ adBreakText: text }),
+    });
 
-  //For Backend/integration replace alert("Ad Break submitted for approval!")with real API POST : adbreaktext, and submitted by */
-  alert("Ad Break Text submitted to queue!");
+    const data = await res.json();
 
-  event.target.reset();
+    if (!res.ok) {
+        alert(data.message || "Failed to submit ad break.");
+        return;
+    }
+
+    alert("Ad break submitted!");
+    event.target.reset();
+    // Refresh the pending list so the admin sees their own submission
+    if (typeof loadAndRenderPending === "function") loadAndRenderPending();
 }
