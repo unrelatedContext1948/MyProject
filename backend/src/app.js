@@ -25,6 +25,11 @@ const frontendPath = path.join(__dirname, "..", "..", "frontend");
 // Serve static files from the frontend directory
 app.use("/", express.static(frontendPath));
 
+// Serve kokoro-js dist files so the browser can import them as ES modules
+app.use("/kokoro", express.static(
+    path.join(__dirname, "../../frontend/node_modules/kokoro-js/dist")
+));
+
 // Use the authentication routes defined in routes/auth.js for any requests to /api/auth
 app.use("/api/auth", authRoutes);
 
