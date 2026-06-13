@@ -93,17 +93,16 @@
           <div class="tv-screen">
            
 
-            <div id="youtubePlayer">
-              <!--Youtube player will be injected here using javascript by integration/backend
+            <div id="youtubePlayer"></div>
 
-              MAIN IDEA suggestions: u can change it later, it's up to u how to do this 
-              -please refer to the ID i've written 
-              -Load the YouTube IFrame API
-              -create JS 
-              -video ID comes from the QUEUE[currentIndex]
-              -when video ends, update currentIndex so it will be synchronized with the queue
-              - use websocket
-              -->
+            <!--Ad break overlay with waveform visualizer – hidden by default-->
+            <div id="adBreakOverlay" class="ad-break-overlay hidden">
+              <canvas id="waveformCanvas" class="waveform-canvas"></canvas>
+              <div class="ad-break-content">
+                <span class="ad-break-label">AD BREAK</span>
+                <p class="ad-break-title" id="adBreakTitle"></p>
+                <p class="ad-break-text" id="adBreakText"></p>
+              </div>
             </div>
           </div>
           <div class="tv-control-bar">
@@ -225,6 +224,12 @@
 
       <!--End of main content-->
     </div>
+
+    <!--Socket.IO client (must load before player.js)-->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!--Waveform visualizer (must load before player.js)-->
+    <script src="assets/js/visualizer.js"></script>
 
     <!--Syaloom JS, don't change anything!-->
     <script src="assets/js/auth.js"></script>

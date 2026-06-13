@@ -1,94 +1,110 @@
 /*
-To understand the flow of this file:
-1. The queue is loaded from PlaylistsTable
-2. The backend keeps track of the current video using currentIndex
-3. When a user joins the website, Socket.io uses this file to know about the current stream state
-4. The client receives:
-   - the current video
-   - the active queue index
-   - the approximate playback time of the video
-5. When the frontend says the current video has ended, the backend moves onto the next video in the queue
+Maintains the in-memory stream state shared across all Socket.IO clients:
+  - which video is playing (currentIndex)
+  - when it started (videoStartTime) → used to sync new joiners
+  - a merged queue that includes upcoming songs + ad-break placeholders
 
-This allows new users to join the current stream and watch the current video playing instead
-of watching the first video in the queue whenever they join the website.
- */
-
+Flow for a new user joining:
+  1. Server sends 'currentStream' with currentVideo, currentTime, mergedQueue, masterClock status
+  2. Client seeks YouTube player to currentTime
+  3. Client renders the queue (which may contain an ad-break entry)
+*/
 
 const PlaylistModel = require("../models/playlistModel");
 
-// Current stream state stored in backend memory
 let queue = [];
 let currentIndex = 0;
-// stores when the current video started playing
-// used to estimate how many seconds the current video has already played
 let videoStartTime = Date.now();
 
-/*
-Load the latest queue from the database
-*/
 function loadQueue() {
     queue = PlaylistModel.getSongsInPlaylist();
     return queue;
 }
-// return the currently playing video based on currentIndex
-// if the in-memory queue is empty, load it from the database
-function getCurrentVideo (){
-    if(queue.length === 0) {
-        loadQueue();
-    }
-    return queue [currentIndex] || null;
+
+function getCurrentVideo() {
+    if (queue.length === 0) loadQueue();
+    return queue[currentIndex] || null;
+}
+
+// Parse "HH:MM:SS" or "MM:SS" → total seconds
+function parseDuration(duration) {
+    if (!duration) return 0;
+    const parts = duration.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return 0;
 }
 
 /*
-Return the current stream state. (This function is for synchronization between users)
+Build the 6-item sliding window the frontend shows as "Up Next".
+Inserts an ad-break placeholder at the position where the master clock
+estimates the next break will fire based on cumulative song durations.
+*/
+function buildMergedQueue(nextAdBreakIn) {
+    if (queue.length === 0) loadQueue();
 
-example:
-in the queue, if a video started 45 seconds ago and then a user opens the website
-they can immediately continue around timestamp 0:45  
-instead of watching the first video from the beginning of the queue when they join the website
+    const upcoming = queue.slice(currentIndex + 1, currentIndex + 7);
+
+    // No ad break scheduled or it's more than an hour away → plain songs list
+    if (nextAdBreakIn === null || nextAdBreakIn > 3600) {
+        return upcoming.map(s => ({ ...s, type: 'song' }));
+    }
+
+    let accumulated = 0;
+    let insertAt = upcoming.length; // default: after all visible items
+
+    for (let i = 0; i < upcoming.length; i++) {
+        if (accumulated >= nextAdBreakIn) {
+            insertAt = i;
+            break;
+        }
+        accumulated += parseDuration(upcoming[i].Duration);
+    }
+
+    const merged = upcoming.map(s => ({ ...s, type: 'song' }));
+    merged.splice(insertAt, 0, {
+        type: 'adbreak',
+        Title: 'Ad Break',
+        AdText: 'Stay tuned – a short break is coming up.',
+    });
+
+    return merged.slice(0, 6);
+}
+
+/*
+Full stream state snapshot sent to every client that connects.
+Includes master-clock info so the client knows about ad breaks immediately.
 */
 function getCurrentStream() {
+    // Lazy-load to avoid circular dependency issues at module initialisation
+    const masterClock = require('./masterClock');
+    const clockStatus = masterClock.getStatus();
     const currentVideo = getCurrentVideo();
 
-    return{
+    return {
         currentVideo,
         currentIndex,
-        currentTime: Math.floor(
-            (Date.now() - videoStartTime) /1000
-        )
+        currentTime: Math.floor((Date.now() - videoStartTime) / 1000),
+        masterClock: clockStatus,
+        mergedQueue: buildMergedQueue(clockStatus.nextAdBreakIn),
     };
 }
 
-/*
-Move to the next video in the queue
-function used when frontend notifies the server that the current vid
-has ended
-*/
 function moveToNextVideo() {
-    if(queue.length === 0){
-        loadQueue();
-    }
+    if (queue.length === 0) loadQueue();
+
     currentIndex++;
-// temporary for synchronization testing
-// loops back to first video when the queue ends (so no silence)
-// later this will be replaced with random videos from PlaylistsTable when the queue ends (so its not final yet for this function)
-    if(currentIndex >= queue.length) {
+    // Loop back to beginning when queue ends
+    if (currentIndex >= queue.length) {
         currentIndex = 0;
     }
-    // reset the synchronization timer because a new video has started playing
-    // the backend uses videoStartTime to estimate playback position od the current vid for newly connected users
     videoStartTime = Date.now();
 
     return getCurrentStream();
-
 }
 
-/*
-Refresh queue data from database
-Used after a new video is submitted so the backend has the latest queue data */
 function refreshQueue() {
     loadQueue();
-   
     return queue;
 }
 
@@ -97,5 +113,5 @@ module.exports = {
     getCurrentVideo,
     getCurrentStream,
     moveToNextVideo,
-    refreshQueue
-}
+    refreshQueue,
+};

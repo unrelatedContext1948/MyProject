@@ -12,6 +12,7 @@ const express = require("express");
 const path = require("path");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
+const adbreakRoutes = require("./routes/adbreak");
 const streamState = require("./services/streamState");
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
@@ -29,6 +30,9 @@ app.use("/api/auth", authRoutes);
 
 // User management route
 app.use("/api/users", express.json(), userRoutes);
+
+// Ad break routes
+app.use("/api/adbreaks", adbreakRoutes);
 
 // Define routes for serving HTML files and handling API requests
 app.get("/", (req, res) => {

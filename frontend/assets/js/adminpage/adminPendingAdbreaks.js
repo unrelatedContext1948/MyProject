@@ -1,166 +1,147 @@
-/* This file is for Pending Ad Break Approval including:
-- Showing the list of pending ad break submissions
--Approve button
--Reject button
+/*
+Pending Ad Break Approvals for the admin dashboard.
+
+Loads real data from GET /api/adbreaks/pending and lets admins
+approve or reject each submission.
 */
 
-/*we will limit the display of the adbreak with maximum of 3
-  if we have more than 3, we will show "show more" button and "show less"
-
-  imagine if we have 15 pending Ad Breaks, then it will be superlong list
-  not good for the user experience (UX)
-
-  for better visualization, go to admin.html right click then open with live server (not the localhost3000)
-*/
 const PENDING_AD_BREAKS_LIMIT = 3;
 let pendingVisible = PENDING_AD_BREAKS_LIMIT;
+let pendingItems = [];
 
-//when the page loads, it will automatically shows the pending list
-document.addEventListener("DOMContentLoaded", function () {
-  renderPendingAdBreaks();
-});
+document.addEventListener("DOMContentLoaded", loadAndRenderPending);
 
-//To show all pending ad breaks, and for each ad break has an approve or reject button
+async function loadAndRenderPending() {
+    const token = localStorage.getItem("token");
 
-//find the container on the admin page.html
+    try {
+        const res = await fetch("/api/adbreaks/pending", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+            console.error("Could not load pending ad breaks:", res.status);
+            return;
+        }
+
+        const data = await res.json();
+        // Normalise to the shape the render functions expect
+        pendingItems = data.map(item => ({
+            id: item.AdBreakID,
+            text: item.AdBreakText,
+            submittedBy: item.SubmittedBy,
+            status: item.Status,
+        }));
+    } catch (e) {
+        console.error("Error fetching pending ad breaks:", e);
+        return;
+    }
+
+    renderPendingAdBreaks();
+}
+
 function renderPendingAdBreaks() {
-  const container = document.getElementById("pendingList");
-  const footer = document.getElementById("pendingFooter");
-  if (!container || !footer) return;
+    const container = document.getElementById("pendingList");
+    const footer = document.getElementById("pendingFooter");
+    if (!container || !footer) return;
 
-  //clear whatever was there before
-  container.innerHTML = "";
-  footer.innerHTML = "";
+    container.innerHTML = "";
+    footer.innerHTML = "";
 
-  //Backend/integration will replace this with real data from database:
+    const pending = pendingItems.filter(item => item.status === "pending");
 
-  /*Filter the item with status pending from arrays PENDING_AD_BREAKS from admindata.js 
-  a.k.a fake database for UI designer purpose only, still static! 
-  
-  integration/backend should adjust this with the real data on the database
-  */
-  const pendingItems = PENDING_AD_BREAKS.filter(function (element) {
-    return element.status === "pending";
-  });
+    if (pending.length === 0) {
+        container.innerHTML = "<p>No pending ad break submissions right now.</p>";
+        return;
+    }
 
-  //if there's nothing to show
-  if (pendingItems.length === 0) {
-    container.innerHTML = "<p> No pending ad break submissions right now </p>";
-    return;
-  }
+    const visible = pending.slice(0, pendingVisible);
+    const remaining = pending.length - pendingVisible;
 
-  //only show pending items up to pendingVisible
-  const visiblePendingItems = pendingItems.slice(0, pendingVisible);
+    visible.forEach(displayAdBreak);
 
-  //how many pending items are still hidden
-  const remaining = pendingItems.length - pendingVisible;
+    function displayAdBreak(element) {
+        const box = document.createElement("div");
+        box.className = "pending-element";
+        box.id = "adbreak-" + element.id;
 
-  //for each index of the array, do this function
-  visiblePendingItems.forEach(displayAdBreak);
+        box.innerHTML = `
+            <div class="pending-header">Submitted by ${element.submittedBy}</div>
+            <div class="pending-text">${element.text}</div>
+            <div class="pending-actions">
+                <button class="btn-icon btn-approve" onclick="approveAdBreak(${element.id})" title="Approve">
+                    <i data-feather="check"></i>
+                </button>
+                <button class="btn-icon btn-reject" onclick="rejectAdBreak(${element.id})" title="Reject">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(box);
+    }
 
-  //element and index are provided
-  function displayAdBreak(element, index) {
-    const box = document.createElement("div");
+    feather.replace();
 
-    box.className = "pending-element"; // give a class, so it can be styled in css later
-    box.id = "adbreak-" + element.id;
+    if (pending.length <= PENDING_AD_BREAKS_LIMIT) return;
 
-    box.innerHTML = `
-      <div class="pending-header">Submitted by ${element.submittedBy}</div>
-      <div class="pending-text">${element.text}</div> 
-      <div class="pending-actions">
-      <button class="btn-icon btn-approve" onclick="approveAdBreak(${element.id})"
-      title="Approve"> 
-      <i data-feather="check"></i>
-      </button>
-      <button class="btn-icon btn-reject" onclick="rejectAdBreak(${element.id})"
-      title="Reject"> <i data-feather="x"></i> </button>
-      </div>
-      `;
-
-    container.appendChild(box);
-  }
-  feather.replace();
-
-  //only show more/less button if there are more than 3 pending items
-  if (pendingItems.length <= PENDING_AD_BREAKS_LIMIT) return;
-
-  if (remaining > 0) {
-    footer.innerHTML = `
-   <button class="pending-toggle-btn" onclick="showMorePendingAdBreaks()">Show more submissions</button>
-  `;
-  } else {
-    footer.innerHTML = `
-    <button class="pending-toggle-btn pending-toggle-less" onclick="showLessPendingAdBreaks()">Show less</button>
-    `;
-  }
+    if (remaining > 0) {
+        footer.innerHTML = `<button class="pending-toggle-btn" onclick="showMorePendingAdBreaks()">Show more submissions</button>`;
+    } else {
+        footer.innerHTML = `<button class="pending-toggle-btn pending-toggle-less" onclick="showLessPendingAdBreaks()">Show less</button>`;
+    }
 }
 
-//show more adbreaks function
 function showMorePendingAdBreaks() {
-  const pendingItems = PENDING_AD_BREAKS.filter(function (element) {
-    return element.status === "pending";
-  });
-
-  pendingVisible = pendingItems.length;
-  renderPendingAdBreaks();
+    pendingVisible = pendingItems.filter(i => i.status === "pending").length;
+    renderPendingAdBreaks();
 }
 
-//show less adbreaks function
 function showLessPendingAdBreaks() {
-  pendingVisible = PENDING_AD_BREAKS_LIMIT;
-  renderPendingAdBreaks();
+    pendingVisible = PENDING_AD_BREAKS_LIMIT;
+    renderPendingAdBreaks();
 }
 
-//to approve an adbreak (when approve button clicked)
-function approveAdBreak(id) {
-  /* integration/backend add API method POST here to tell server that ad was being approved
-    if respond ok then call the function fadeOutRenderAgain(id);
-  */
+async function approveAdBreak(id) {
+    const token = localStorage.getItem("token");
 
-  //this is only for UI dummy data, can be deleted after it's already connected to the backend
-  const item = PENDING_AD_BREAKS.find(function (element) {
-    return element.id === id;
-  });
+    const res = await fetch(`/api/adbreaks/${id}/approve`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+    });
 
-  if (item) {
-    item.status = "approved";
-  }
+    if (!res.ok) {
+        alert("Failed to approve ad break.");
+        return;
+    }
 
-  fadeOutAndRenderAgain(id);
+    const item = pendingItems.find(i => i.id === id);
+    if (item) item.status = "approved";
+    fadeOutAndRenderAgain(id);
 }
 
-//to reject an adbreak (when reject button clicked)
-function rejectAdBreak(id) {
-  /* integration/backend add API method POST here to tell server that ad was being rejected
-     if respond ok then call the function fadeOutAndRenderAgain(id);
-  */
+async function rejectAdBreak(id) {
+    const token = localStorage.getItem("token");
 
-  //this is only for UI dummy data, can be deleted after it's already connected to the backend
-  const item = PENDING_AD_BREAKS.find(function (element) {
-    return element.id === id;
-  });
+    const res = await fetch(`/api/adbreaks/${id}/reject`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+    });
 
-  if (item) {
-    item.status = "rejected";
-  }
+    if (!res.ok) {
+        alert("Failed to reject ad break.");
+        return;
+    }
 
-  fadeOutAndRenderAgain(id);
+    const item = pendingItems.find(i => i.id === id);
+    if (item) item.status = "rejected";
+    fadeOutAndRenderAgain(id);
 }
 
-/*add animation: fade the box and then re-render
-  always call this function after approve/reject button pressed
-*/
 function fadeOutAndRenderAgain(id) {
-  const box = document.getElementById("adbreak-" + id);
-
-  if (box) {
-    box.style.transition = "opacity 0.3s";
-    box.style.opacity = "0";
-
-    //re-render the function after 0.3s
-    setTimeout(function () {
-      renderPendingAdBreaks();
-    }, 300);
-  }
+    const box = document.getElementById("adbreak-" + id);
+    if (box) {
+        box.style.transition = "opacity 0.3s";
+        box.style.opacity = "0";
+        setTimeout(renderPendingAdBreaks, 300);
+    }
 }
