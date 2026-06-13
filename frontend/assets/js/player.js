@@ -28,8 +28,8 @@ async function loadQueueThenPlay() {
     height: "100%",
     videoId: videoId,
     playerVars: {
-      autoplay: 0, // don't autoplay on load, wait for user interaction
-      controls: 1, // show YouTube controls
+      autoplay: 1, //  player autoplay on load
+      controls: 0, //  YouTube controls removed
     },
     events: {
       onReady: onPlayerReady,
@@ -44,7 +44,8 @@ function onPlayerReady() {
   renderQueue();
   // Set initial volume to match the slider
   const slider = document.getElementById("volumeSlider");
-  player.setVolume(parseInt(slider.value));
+  slider.value = 0;        //slider value is at 0 and player is muted initially
+  player.setVolume(0);
   updateVolume(); // Ensure the new video starts at the current volume  
 }
 
