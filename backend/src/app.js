@@ -12,6 +12,7 @@ const express = require("express");
 const path = require("path");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
+const streamState = require("./services/streamState");
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
 const { authenticate } = require("./middleware/authorization");
@@ -67,6 +68,17 @@ app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => 
       VideoURL: videoInfo.videoURL,
       SubmittedBy: req.user.username,
     });
+     //Refresh the backend copy of the queue
+    // Ensures streamState has the latest queue information after a new vid is added
+    streamState.refreshQueue();
+    // Allows app.js routes to broadcast real-time events
+    const io = req.app.get("io");
+    // notify all connected clients that queue has changed
+    // users can see new vids added without refreshing the queue
+    io.emit("queueUpdated", {
+      message: "Queue updated"
+    });
+
     res.status(201).json({ message: "Song added to queue" });
   } catch (err) {
     console.error("Error adding song:", err);

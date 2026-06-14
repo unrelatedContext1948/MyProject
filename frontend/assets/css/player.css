@@ -16,7 +16,7 @@
 }
 
 .tv-screen {
-  width: 480px;
+  width: 560px;
   aspect-ratio: 16 / 9; /*ratio of 16:9 ALWAYS!!!*/
   background-color: black;
   border-radius: 0.5rem;
@@ -99,4 +99,64 @@
   min-width: 2rem;
   font-size: 0.875rem;
   color: var(--sage-700);
+}
+
+/*for tablets (<= 768px) TV will get smaller adjusting with the maximum scree size */
+@media (max-width: 768px) {
+  .tv-player {
+    padding: 1.25rem 1rem;
+    gap: 1rem;
+  }
+
+  .tv-frame {
+    width: 80%;
+  }
+
+  .tv-screen {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .track-title {
+    font-size: 1.1rem;
+  }
+
+  .volume-control {
+    width: 180px;
+  }
+}
+
+/*for tablets (<= 480px) TV will get smaller adjusting with the maximum scree size */
+@media (max-width: 480px) {
+  .tv-player {
+    padding: 1rem 0;
+    gap: 0.85rem;
+  }
+
+  .tv-frame {
+    width: 75%;
+  }
+
+  .tv-screen {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .track-info {
+    padding: 0 1rem;
+  }
+
+  .track-title {
+    font-size: 1rem;
+  }
+
+  .track-submittedby {
+    font-size: 0.8rem;
+  }
+
+  .volume-control {
+    width: 100%;
+    max-width: 2880px;
+    padding: 0 1rem;
+  }
 }

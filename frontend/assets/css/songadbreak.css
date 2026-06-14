@@ -49,3 +49,32 @@
   font-size: 1.125rem;
   font-weight: 500;
 }
+
+/*for tablets (<= 768px) */
+@media (max-width: 768px) {
+  .submission-section {
+    padding: 0 1rem 1.5rem;
+  }
+
+  .form-box {
+    padding: 1.25rem;
+  }
+}
+
+/*for mobile (<= 480px) */
+@media (max-width: 480px) {
+  .submission-section {
+    padding: 0 0.75rem 1.25rem;
+  }
+  .form-box {
+    padding: 1rem;
+  }
+
+  .form-header-youtube h3 {
+    font-size: 1rem;
+  }
+
+  .form-header-adbreak h3 {
+    font-size: 1rem;
+  }
+}
