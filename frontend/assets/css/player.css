@@ -23,6 +23,7 @@
   border: 2px solid #4a2511;
   overflow: hidden; /* coz the edge is bit rounded, so video will not go outside of the edge, coz vid is square ecke*/
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
 .tv-control-bar {
@@ -103,16 +104,14 @@
 
 /* ── Ad Break Waveform Overlay ────────────────────────────────────────────── */
 
-/*
-The overlay sits on top of the YouTube player inside .tv-screen.
-It covers the screen with a dark semi-transparent background and shows
-the animated waveform canvas + ad text.
-*/
-
 .ad-break-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.88);
+  background: radial-gradient(
+    circle at center,
+    rgba(15, 15, 20, 0.85) 0%,
+    rgba(5, 5, 8, 0.98) 100%
+  );
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -137,44 +136,34 @@ the animated waveform canvas + ad text.
   width: 100%;
   height: 100%;
   display: block;
+  mix-blend-mode: screen;
 }
 
 .ad-break-content {
   position: relative;
   z-index: 2;
-  width: 90%;
+  width: 80%;
   text-align: center;
   padding: 0.75rem 1rem 0;
   color: #e8e8e0;
+  pointer-events: none;
 }
 
 .ad-break-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  color: var(--sage-600, #6b8f71);
-  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: #00ffaa;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+  text-transform: uppercase;
 }
 
 .ad-break-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin: 0.3rem 0 0.2rem;
-  color: #f0f0e8;
-}
-
-.ad-break-text {
-  font-size: 0.72rem;
-  line-height: 1.4;
-  color: #b0b8a8;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
-
-/* The TV screen needs position: relative so the absolute overlay works */
-.tv-screen {
-  position: relative;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.3rem;
+  color: #ffffff;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
 }
 
 /*for tablets (<= 768px) TV will get smaller adjusting with the maximum scree size */
