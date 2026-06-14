@@ -50,7 +50,7 @@ const visualizer = (() => {
         if (!canvas) return;
         const screen = canvas.closest(".tv-screen") || canvas.parentElement;
         canvas.width  = screen.clientWidth  || 560;
-        canvas.height = Math.round((screen.clientHeight || 315) * 0.6);
+        canvas.height = screen.clientHeight || 315;
     }
 
     function drawWaveform() {
@@ -64,56 +64,67 @@ const visualizer = (() => {
         const bufferLength = analyser.frequencyBinCount;
         const dataArray   = new Uint8Array(bufferLength);
 
-        // Smoothed radius values for lerp
-        const smoothed = new Float32Array(bufferLength).fill(0);
+        const POINTS  = 180;
+        const smoothed = new Float32Array(POINTS).fill(0);
 
         function draw() {
             analyser.getByteFrequencyData(dataArray);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "rgba(0, 0, 0, 0.92)";
+            ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const cx = canvas.width  / 2;
             const cy = canvas.height / 2;
-            const baseRadius = Math.min(cx, cy) * 0.45;
-            const POINTS = 128;
+            const baseRadius = Math.min(cx, cy) * 0.72;
 
-            // Lerp smoothed values toward current frequency data
+            // Lerp each point toward its target frequency value
             for (let i = 0; i < POINTS; i++) {
-                const bin = Math.floor(i * bufferLength / POINTS);
-                smoothed[i] += (dataArray[bin] - smoothed[i]) * 0.15;
+                const bin = Math.floor((i / POINTS) * bufferLength * 0.75);
+                smoothed[i] += (dataArray[bin] - smoothed[i]) * 0.12;
             }
 
-            // Draw 3 layered rings for depth
-            for (let layer = 2; layer >= 0; layer--) {
-                const scale  = 1 - layer * 0.08;
-                const alpha  = 1 - layer * 0.25;
-                const blur   = 18 - layer * 4;
+            // Compute overall energy for global pulse
+            const avgEnergy = dataArray.slice(0, bufferLength / 2)
+                .reduce((s, v) => s + v, 0) / (bufferLength / 2);
+            const pulse = 1 + (avgEnergy / 255) * 0.06;
 
+            // Draw 3 rings: outer glow → mid → sharp inner
+            const layers = [
+                { lineWidth: 14, blur: 40, alpha: 0.25, scale: 1.02 },
+                { lineWidth: 6,  blur: 20, alpha: 0.55, scale: 1.0  },
+                { lineWidth: 2,  blur: 8,  alpha: 1.0,  scale: 0.98 },
+            ];
+
+            for (const layer of layers) {
                 ctx.beginPath();
                 for (let i = 0; i <= POINTS; i++) {
-                    const idx    = i % POINTS;
-                    const angle  = (idx / POINTS) * Math.PI * 2 - Math.PI / 2;
-                    const amp    = (smoothed[idx] / 255) * baseRadius * 0.6;
-                    const r      = (baseRadius + amp) * scale;
-                    const x      = cx + Math.cos(angle) * r;
-                    const y      = cy + Math.sin(angle) * r;
+                    const idx   = i % POINTS;
+                    const angle = (idx / POINTS) * Math.PI * 2 - Math.PI / 2;
+                    const amp   = (smoothed[idx] / 255) * baseRadius * 0.28;
+                    const r     = (baseRadius + amp) * layer.scale * pulse;
+                    const x     = cx + Math.cos(angle) * r;
+                    const y     = cy + Math.sin(angle) * r;
                     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
                 }
                 ctx.closePath();
 
-                // Stroke gradient: teal → green → blue
-                const grad = ctx.createLinearGradient(cx - baseRadius, cy, cx + baseRadius, cy);
-                grad.addColorStop(0,   `rgba(0, 220, 200, ${alpha})`);
-                grad.addColorStop(0.4, `rgba(80, 200, 120, ${alpha})`);
-                grad.addColorStop(0.7, `rgba(0, 180, 255, ${alpha})`);
-                grad.addColorStop(1,   `rgba(0, 220, 200, ${alpha})`);
+                // Rotating colour gradient so it shifts over time
+                const t    = Date.now() * 0.0003;
+                const gx1  = cx + Math.cos(t) * baseRadius;
+                const gy1  = cy + Math.sin(t) * baseRadius;
+                const gx2  = cx + Math.cos(t + Math.PI) * baseRadius;
+                const gy2  = cy + Math.sin(t + Math.PI) * baseRadius;
+                const grad = ctx.createLinearGradient(gx1, gy1, gx2, gy2);
+                grad.addColorStop(0,    `rgba(0, 230, 210, ${layer.alpha})`);
+                grad.addColorStop(0.33, `rgba(60, 210, 130, ${layer.alpha})`);
+                grad.addColorStop(0.66, `rgba(0, 160, 255, ${layer.alpha})`);
+                grad.addColorStop(1,    `rgba(0, 230, 210, ${layer.alpha})`);
 
                 ctx.strokeStyle = grad;
-                ctx.lineWidth   = layer === 0 ? 2.5 : 1.5;
-                ctx.shadowColor = "#00dcc8";
-                ctx.shadowBlur  = blur;
+                ctx.lineWidth   = layer.lineWidth;
+                ctx.shadowColor = "#00e8d2";
+                ctx.shadowBlur  = layer.blur;
                 ctx.stroke();
             }
 
