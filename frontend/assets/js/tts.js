@@ -13,7 +13,7 @@ Flow:
       → AudioContext.destination      (speakers)
 */
 
-import { KokoroTTS } from "/kokoro/kokoro.js";
+import { KokoroTTS } from "kokoro-js";
 
 let ttsInstance = null;
 let audioCtx = null;
@@ -83,6 +83,10 @@ window.humanTTS = {
     isReady: () => !!ttsInstance && !loading,
 };
 
-// Pre-warm: start loading the model as soon as the page loads
-// so the first ad break doesn't have to wait
-ensureReady().catch(err => console.error("[TTS] Init error:", err));
+// Pre-warm: start loading the model as soon as the page loads.
+// Failures are caught so a missing kokoro-js install never breaks the app –
+// the visualizer will just fall back to sine waves.
+ensureReady().catch(err => {
+    console.warn("[TTS] Could not load Kokoro model – visualizer will use sine-wave fallback.", err);
+    window.humanTTS = null;
+});
