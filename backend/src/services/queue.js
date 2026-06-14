@@ -11,8 +11,8 @@ class Queue extends EventEmitter {
     this.totalStreamTime = 0; //total time of the stream in seconds.
     this.isAdPlaying = false; //ad break not running.
     this.adTimer = null; //timer for ad breaks.
-    this.adBreakInterval= 15 * 60 * 1000; //15 minutes in milliseconds.
-    this.adBreakDuration = 30 * 1000; //30 seconds ad break in milliseconds.
+    this.adBreakInterval= 10000; //15 minutes in milliseconds.
+    this.adBreakDuration = 5000; //30 seconds ad break in milliseconds.
   }
 
   //-----------------------------------------------------------------------//

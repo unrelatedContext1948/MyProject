@@ -22,8 +22,14 @@ async function loadUserData() {
   const data = await response.json();
 
   // Update the UI based on the backend data
+<<<<<<< Updated upstream
   document.getElementById("userRoleDisplay").textContent =
     data.role === "admin" ? "Admin" : "User";
+=======
+  document.getElementById("userRoleDisplay").textContent =  // Fira: 25 & 26 duplicate, delete one of them.
+    document.getElementById("userRoleDisplay").textContent =
+      data.role === "admin" ? "Admin" : "User";
+>>>>>>> Stashed changes
   document.getElementById("navLoggedIn").classList.remove("hidden");
   document.getElementById("loginBtn").classList.add("hidden");
 }
