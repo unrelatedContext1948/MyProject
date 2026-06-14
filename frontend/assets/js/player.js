@@ -50,7 +50,8 @@ function _createPlayer(videoId, startSeconds) {
 
 function _onPlayerReady(event) {
     const slider = document.getElementById("volumeSlider");
-    player.setVolume(parseInt(slider.value));
+    slider.value = 0;
+    player.setVolume(0);
     updateVolume();
     event.target.playVideo();
 }
