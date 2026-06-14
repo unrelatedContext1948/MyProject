@@ -225,17 +225,30 @@
       <!--End of main content-->
     </div>
 
+    <!--Import map so the browser resolves bare specifiers used by kokoro-js-->
+    <script type="importmap">
+    {
+      "imports": {
+        "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js",
+        "kokoro-js": "/kokoro/kokoro.js"
+      }
+    }
+    </script>
+
     <!--Socket.IO client (must load before player.js)-->
     <script src="/socket.io/socket.io.js"></script>
+
+    <!--Kokoro.js TTS – ES module, exposes window.humanTTS for other scripts-->
+    <script type="module" src="assets/js/tts.js"></script>
 
     <!--Waveform visualizer (must load before player.js)-->
     <script src="assets/js/visualizer.js"></script>
 
     <!--Syaloom JS, don't change anything!-->
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/queue.js"></script>
     <script src="assets/js/player.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="assets/js/queue.js"></script>
     <script src="assets/js/songadbreak.js"></script>
 
     <!--Fernando-->
