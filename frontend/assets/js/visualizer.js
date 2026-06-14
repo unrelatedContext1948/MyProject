@@ -1,88 +1,48 @@
 /*
 Waveform Audio Visualizer for HumanMusic.
 
-When Kokoro.js TTS is active (window.humanTTS), bar heights are driven by
-real frequency data from the AnalyserNode. Otherwise falls back to
-synthesised sine waves so the canvas is never empty.
+Uses the Web Audio API to visualize a real MP3 audio file (TTS output).
+Instead of microphone input, it connects an <audio> element to an
+AnalyserNode and draws the waveform on a canvas overlay inside the TV screen.
 
 Public API:
-  visualizer.show(adBreak)  – generate TTS audio, fade in, start animation
-  visualizer.hide()          – stop animation, fade out
+  visualizer.show(adBreak, audioUrl)  – set audio, fade in, start waveform
+  visualizer.hide()                    – stop audio, fade out
 */
 
 const visualizer = (() => {
     const CANVAS_ID  = "waveformCanvas";
     const OVERLAY_ID = "adBreakOverlay";
-    const BARS = 48;
+    const AUDIO_ID   = "adAudio";
 
-    let animationId = null;
-    let phase = 0;        // used for sine-wave fallback
-    let energy = 1;
-    let dataArray = null; // Uint8Array fed by AnalyserNode
+    let audioContext = null;
+    let analyser     = null;
+    let source       = null;
+    let animationId  = null;
 
     function getElements() {
         return {
             canvas:   document.getElementById(CANVAS_ID),
             overlay:  document.getElementById(OVERLAY_ID),
+            audio:    document.getElementById(AUDIO_ID),
             adTitle:  document.getElementById("adBreakTitle"),
-            adText:   document.getElementById("adBreakText"),
+            adText:   document.getElementById("adBreakTextDisplay"),
         };
     }
 
-    function draw() {
-        const { canvas } = getElements();
-        if (!canvas) return;
-
-        const ctx  = canvas.getContext("2d");
-        const W    = canvas.width;
-        const H    = canvas.height;
-        const barW = W / BARS;
-
-        ctx.clearRect(0, 0, W, H);
-
-        const analyser = window.humanTTS ? window.humanTTS.getAnalyser() : null;
-
-        if (analyser && dataArray) {
-            // ── Real audio path ───────────────────────────────────────────
-            analyser.getByteFrequencyData(dataArray);
-            const bins = dataArray.length;
-
-            for (let i = 0; i < BARS; i++) {
-                // Map bar index → frequency bin (logarithmic feel)
-                const binIndex = Math.floor((i / BARS) * bins);
-                const amplitude = (dataArray[binIndex] / 255) * energy;
-                const barH = Math.max(4, amplitude * H * 0.85);
-                const x = i * barW;
-                const y = (H - barH) / 2;
-
-                const lightness = 35 + (i / BARS) * 20;
-                ctx.fillStyle = `hsla(140, 35%, ${lightness}%, 0.9)`;
-                ctx.fillRect(x + 2, y, Math.max(1, barW - 4), barH);
-            }
-        } else {
-            // ── Sine-wave fallback (TTS not yet ready or not available) ──
-            phase += 0.04;
-
-            for (let i = 0; i < BARS; i++) {
-                const norm = i / BARS;
-                const raw =
-                    Math.sin(phase + norm * 6.3)        * 0.40 +
-                    Math.sin(phase * 1.6 + norm * 11)   * 0.25 +
-                    Math.sin(phase * 0.7 + norm * 4.2)  * 0.20 +
-                    Math.sin(phase * 2.3 + norm * 18)   * 0.15;
-
-                const amplitude = Math.max(0.04, (raw + 1) / 2) * energy;
-                const barH = amplitude * H * 0.75;
-                const x = i * barW;
-                const y = (H - barH) / 2;
-
-                const lightness = 35 + norm * 20;
-                ctx.fillStyle = `hsla(140, 35%, ${lightness}%, 0.85)`;
-                ctx.fillRect(x + 2, y, Math.max(1, barW - 4), barH);
-            }
+    // Connect <audio> element to Web Audio API analyser (only once)
+    async function setupAudio(audioElement) {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048; // higher = smoother waveform
+            source = audioContext.createMediaElementSource(audioElement);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination); // so we hear it too
         }
-
-        animationId = requestAnimationFrame(draw);
+        if (audioContext.state === "suspended") {
+            await audioContext.resume();
+        }
     }
 
     function resizeCanvas() {
@@ -90,58 +50,104 @@ const visualizer = (() => {
         if (!canvas) return;
         const screen = canvas.closest(".tv-screen") || canvas.parentElement;
         canvas.width  = screen.clientWidth  || 560;
-        canvas.height = Math.round((screen.clientHeight || 315) * 0.55);
+        canvas.height = Math.round((screen.clientHeight || 315) * 0.6);
     }
 
-    function initDataArray() {
-        const analyser = window.humanTTS ? window.humanTTS.getAnalyser() : null;
-        if (analyser) {
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
+    function drawWaveform() {
+        const { canvas } = getElements();
+        if (!canvas || !analyser) return;
+
+        const ctx         = canvas.getContext("2d");
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray   = new Uint8Array(bufferLength);
+
+        function draw() {
+            analyser.getByteTimeDomainData(dataArray); // oscilloscope-style
+
+            // Background
+            ctx.fillStyle = "rgba(0, 0, 0, 0.88)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Center line (guide)
+            ctx.strokeStyle = "rgba(107, 143, 113, 0.2)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // Waveform line
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = "#6b8f71"; // sage green
+            ctx.shadowColor = "#6b8f71";
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+
+            const sliceWidth = canvas.width / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * canvas.height) / 2;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                x += sliceWidth;
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            animationId = requestAnimationFrame(draw);
         }
+
+        animationId = requestAnimationFrame(draw);
     }
 
-    function show(adBreak) {
-        const { overlay, adTitle, adText } = getElements();
-        if (!overlay) return;
+    async function show(adBreak, audioUrl) {
+        const { overlay, audio, adTitle, adText } = getElements();
+        if (!overlay || !audio) return;
 
+        // Fill in ad content
         if (adTitle) adTitle.textContent = adBreak ? adBreak.AdBreakTitle : "Ad Break";
         if (adText)  adText.textContent  = adBreak ? adBreak.AdBreakText  : "";
 
-        energy = adBreak ? Math.min(1.2, 0.7 + adBreak.AdBreakText.length / 2000) : 1;
+        // Set the MP3 source (from Kokoro.js output or test file)
+        audio.src = audioUrl || "/assets/audio/test.mp3";
 
         overlay.classList.remove("hidden");
         overlay.classList.add("ad-break-visible");
 
-        requestAnimationFrame(() => {
+        requestAnimationFrame(async () => {
             resizeCanvas();
-            initDataArray();
-            if (!animationId) draw();
+            await setupAudio(audio);
+            audio.play().catch(err => console.warn("[Visualizer] Audio play error:", err));
+            drawWaveform();
         });
 
-        // Start TTS if available – audio drives the visualizer automatically
-        // via the shared AnalyserNode in tts.js
-        if (window.humanTTS && adBreak) {
-            window.humanTTS.speak(adBreak.AdBreakText).catch(err =>
-                console.warn("[Visualizer] TTS speak error:", err)
-            );
-        }
+        // Auto-hide when audio finishes
+        audio.onended = () => hide();
     }
 
     function hide() {
-        const { overlay } = getElements();
-        if (!overlay) return;
+        const { overlay, audio } = getElements();
 
+        if (audio) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+
+        if (!overlay) return;
         overlay.classList.remove("ad-break-visible");
         overlay.classList.add("ad-break-hiding");
 
         setTimeout(() => {
             overlay.classList.add("hidden");
             overlay.classList.remove("ad-break-hiding");
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
-            dataArray = null;
         }, 600);
     }
 

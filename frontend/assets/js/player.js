@@ -86,7 +86,8 @@ socket.on("currentStream", (streamData) => {
 
     // If we're in an ad break right now, show the visualizer immediately
     if (streamData.masterClock && streamData.masterClock.isAdBreaking) {
-        visualizer.show(streamData.masterClock.currentAdBreak);
+        const ad = streamData.masterClock.currentAdBreak;
+        visualizer.show(ad, ad ? ad.AdBreakURL : null);
     }
 
     if (!streamData.currentVideo) {
@@ -141,7 +142,7 @@ socket.on("queueUpdated", async () => {
 // ─── Ad break events ─────────────────────────────────────────────────────────
 
 socket.on("adBreakStart", (adBreak) => {
-    visualizer.show(adBreak);
+    visualizer.show(adBreak, adBreak ? adBreak.AdBreakURL : null);
 });
 
 socket.on("adBreakEnd", () => {
