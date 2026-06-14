@@ -57,43 +57,64 @@ const visualizer = (() => {
         const { canvas } = getElements();
         if (!canvas || !analyser) return;
 
-        analyser.fftSize = 256; // 128 frequency bins → clean bar count
-        analyser.smoothingTimeConstant = 0.8; // smooths rapid jumps
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
 
         const ctx         = canvas.getContext("2d");
-        const bufferLength = analyser.frequencyBinCount; // 128
+        const bufferLength = analyser.frequencyBinCount;
         const dataArray   = new Uint8Array(bufferLength);
 
-        const BAR_COUNT = 64;        // number of bars shown
-        const GAP       = 3;         // px gap between bars
+        // Smoothed radius values for lerp
+        const smoothed = new Float32Array(bufferLength).fill(0);
 
         function draw() {
-            analyser.getByteFrequencyData(dataArray); // equalizer-style
+            analyser.getByteFrequencyData(dataArray);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Background
             ctx.fillStyle = "rgba(0, 0, 0, 0.92)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const barWidth = (canvas.width - GAP * (BAR_COUNT - 1)) / BAR_COUNT;
-            const step     = Math.floor(bufferLength / BAR_COUNT);
+            const cx = canvas.width  / 2;
+            const cy = canvas.height / 2;
+            const baseRadius = Math.min(cx, cy) * 0.45;
+            const POINTS = 128;
 
-            for (let i = 0; i < BAR_COUNT; i++) {
-                const value    = dataArray[i * step];
-                const barHeight = (value / 255) * canvas.height * 0.85;
-                const x        = i * (barWidth + GAP);
-                const y        = canvas.height - barHeight;
+            // Lerp smoothed values toward current frequency data
+            for (let i = 0; i < POINTS; i++) {
+                const bin = Math.floor(i * bufferLength / POINTS);
+                smoothed[i] += (dataArray[bin] - smoothed[i]) * 0.15;
+            }
 
-                // Gradient: bright green at top → darker at bottom
-                const grad = ctx.createLinearGradient(0, y, 0, canvas.height);
-                grad.addColorStop(0, "#a8d5b0");   // light sage
-                grad.addColorStop(1, "#3a5c3f");   // dark sage
+            // Draw 3 layered rings for depth
+            for (let layer = 2; layer >= 0; layer--) {
+                const scale  = 1 - layer * 0.08;
+                const alpha  = 1 - layer * 0.25;
+                const blur   = 18 - layer * 4;
 
-                ctx.shadowColor = "#6b8f71";
-                ctx.shadowBlur  = 6;
-                ctx.fillStyle   = grad;
-                ctx.fillRect(x, y, barWidth, barHeight);
+                ctx.beginPath();
+                for (let i = 0; i <= POINTS; i++) {
+                    const idx    = i % POINTS;
+                    const angle  = (idx / POINTS) * Math.PI * 2 - Math.PI / 2;
+                    const amp    = (smoothed[idx] / 255) * baseRadius * 0.6;
+                    const r      = (baseRadius + amp) * scale;
+                    const x      = cx + Math.cos(angle) * r;
+                    const y      = cy + Math.sin(angle) * r;
+                    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+
+                // Stroke gradient: teal → green → blue
+                const grad = ctx.createLinearGradient(cx - baseRadius, cy, cx + baseRadius, cy);
+                grad.addColorStop(0,   `rgba(0, 220, 200, ${alpha})`);
+                grad.addColorStop(0.4, `rgba(80, 200, 120, ${alpha})`);
+                grad.addColorStop(0.7, `rgba(0, 180, 255, ${alpha})`);
+                grad.addColorStop(1,   `rgba(0, 220, 200, ${alpha})`);
+
+                ctx.strokeStyle = grad;
+                ctx.lineWidth   = layer === 0 ? 2.5 : 1.5;
+                ctx.shadowColor = "#00dcc8";
+                ctx.shadowBlur  = blur;
+                ctx.stroke();
             }
 
             ctx.shadowBlur = 0;
