@@ -57,46 +57,46 @@ const visualizer = (() => {
         const { canvas } = getElements();
         if (!canvas || !analyser) return;
 
+        analyser.fftSize = 256; // 128 frequency bins → clean bar count
+        analyser.smoothingTimeConstant = 0.8; // smooths rapid jumps
+
         const ctx         = canvas.getContext("2d");
-        const bufferLength = analyser.frequencyBinCount;
+        const bufferLength = analyser.frequencyBinCount; // 128
         const dataArray   = new Uint8Array(bufferLength);
 
+        const BAR_COUNT = 64;        // number of bars shown
+        const GAP       = 3;         // px gap between bars
+
         function draw() {
-            analyser.getByteTimeDomainData(dataArray); // oscilloscope-style
+            analyser.getByteFrequencyData(dataArray); // equalizer-style
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Background
-            ctx.fillStyle = "rgba(0, 0, 0, 0.88)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.92)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Center line (guide)
-            ctx.strokeStyle = "rgba(107, 143, 113, 0.2)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height / 2);
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
+            const barWidth = (canvas.width - GAP * (BAR_COUNT - 1)) / BAR_COUNT;
+            const step     = Math.floor(bufferLength / BAR_COUNT);
 
-            // Waveform line
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = "#6b8f71"; // sage green
-            ctx.shadowColor = "#6b8f71";
-            ctx.shadowBlur = 8;
-            ctx.beginPath();
+            for (let i = 0; i < BAR_COUNT; i++) {
+                const value    = dataArray[i * step];
+                const barHeight = (value / 255) * canvas.height * 0.85;
+                const x        = i * (barWidth + GAP);
+                const y        = canvas.height - barHeight;
 
-            const sliceWidth = canvas.width / bufferLength;
-            let x = 0;
+                // Gradient: bright green at top → darker at bottom
+                const grad = ctx.createLinearGradient(0, y, 0, canvas.height);
+                grad.addColorStop(0, "#a8d5b0");   // light sage
+                grad.addColorStop(1, "#3a5c3f");   // dark sage
 
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = (v * canvas.height) / 2;
-                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                x += sliceWidth;
+                ctx.shadowColor = "#6b8f71";
+                ctx.shadowBlur  = 6;
+                ctx.fillStyle   = grad;
+                ctx.fillRect(x, y, barWidth, barHeight);
             }
 
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
             ctx.shadowBlur = 0;
-
             animationId = requestAnimationFrame(draw);
         }
 
