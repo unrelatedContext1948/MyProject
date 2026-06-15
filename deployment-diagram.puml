@@ -31,6 +31,18 @@ node "Client Machine" <<device>> {
     artifact "Web Audio API"        <<Library>>
     artifact "Canvas API"           <<Library>>
 
+    artifact "CSS Stylesheets" <<Style>> {
+      artifact "style.css"
+      artifact "player.css"
+      artifact "queue.css"
+      artifact "songadbreak.css"
+      artifact "admin.css"
+    }
+
+    ' CSS dependencies
+    "index.html"      ..> "CSS Stylesheets"
+    "admin.html"      ..> "CSS Stylesheets"
+
     ' index.html loads
     "index.html"      ..> "player.js"         : <<use>>
     "index.html"      ..> "visualizer.js"     : <<use>>

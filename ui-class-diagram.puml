@@ -1,0 +1,80 @@
+@startuml HumanMusic UI Class Diagram
+
+skinparam classBackgroundColor #ffffff
+skinparam classBorderColor #333333
+skinparam arrowColor #333333
+skinparam classAttributeIconSize 0
+
+class Player {
+  + player: YT.Player
+  + songsInQueue: Array
+  + currentIndex: Integer
+  + ytApiReady: Boolean
+  + currentVideo: Object
+  + mergedQueue: Array
+  --
+  + onYouTubeIframeAPIReady(): void
+  + createYouTubePlayer(video: Object): void
+  + onPlayerReady(event): void
+  + onPlayerStateChange(event): void
+  + extractVideoId(url: String): String
+  + showCurrentSong(song: Object): void
+  + updateVolume(): void
+}
+
+class QueueRenderer {
+  + mergedQueue: Array
+  --
+  + renderQueue(): void
+  + displayQueueItem(element, index): void
+}
+
+class Visualizer {
+  + audioContext: AudioContext
+  + analyser: AnalyserNode
+  + source: MediaElementSourceNode
+  + animationId: Integer
+  --
+  + show(adBreak, audioUrl: String): void
+  + hide(): void
+  + setupAudio(audioElement): void
+  + resizeCanvas(): void
+  + drawWaveform(): void
+}
+
+class TTS {
+  + ttsInstance: KokoroTTS
+  + audioCtx: AudioContext
+  + analyser: AnalyserNode
+  + loading: Boolean
+  --
+  + ensureReady(): Promise
+  + speak(text: String): Promise
+  + getAnalyser(): AnalyserNode
+  + isReady(): Boolean
+}
+
+class Authentication {
+  + AuthState.user: String
+  + AuthState.role: String
+  --
+  + openLoginModal(): void
+  + closeLoginModal(): void
+  + handleLogin(event): void
+  + showRole(role: String): void
+  + logout(): void
+}
+
+class SongAdBreak {
+  --
+  + submitTrack(event): void
+  + submitAdBreak(event): void
+}
+
+' ─── Relationships ────────────────────────────────────────────────────────────
+Player       ..> QueueRenderer  : <<use>>
+Player       ..> Visualizer     : <<use>>
+Visualizer   ..> TTS            : <<use>>
+SongAdBreak  ..> Authentication : <<use>>
+
+@enduml
