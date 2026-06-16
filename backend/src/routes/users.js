@@ -20,13 +20,6 @@ router.get("/", authenticate, authorize("admin"), (req, res) => {
 
 });
 
-/* 
-Function: Admin creates new user
-POST/ users
-Only admin can access this function
-*/
-//authenticate() verifies the user's token
-//authorize ("admin") ensures only admins can access this route
 router.post("/", authenticate, authorize("admin"), async (req, res) => {
     const { username, password, role } = req.body;
 
@@ -105,6 +98,29 @@ router.post("/", authenticate, authorize("admin"), async (req, res) => {
         });
     }   
 
+});
+
+/*
+Function: Admin deletes a user
+DELETE /users/:id
+Only admin can access this function
+*/
+router.delete("/:id", authenticate, authorize("admin"), (req, res) => {
+    const userID = parseInt(req.params.id);
+
+    if (!userID) {
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    try {
+        const result = UserModel.deleteUser(userID);
+        if (result.changes === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ message: "Failed to delete user" });
+    }
 });
 
 module.exports = router;
