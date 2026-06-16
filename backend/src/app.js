@@ -12,12 +12,17 @@ const express = require("express");
 const path = require("path");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
+<<<<<<< Updated upstream
 const streamState = require("./services/streamState");
+=======
+const adBreakRoutes = require("./routes/adbreak");
+>>>>>>> Stashed changes
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
 const { authenticate } = require("./middleware/authorization");
 const { getVideoInfo } = require("./services/youtube");
 const { url } = require("inspector");
+
 
 const frontendPath = path.join(__dirname, "..", "..", "frontend");
 
@@ -29,6 +34,9 @@ app.use("/api/auth", authRoutes);
 
 // User management route
 app.use("/api/users", express.json(), userRoutes);
+
+// Ad break management route
+app.use("/api/adbreak", adBreakRoutes);
 
 // Define routes for serving HTML files and handling API requests
 app.get("/", (req, res) => {

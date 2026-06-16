@@ -58,7 +58,7 @@ function onPlayerStateChange(event) {
 
     // If there are no more songs, show a message and stop
     if (currentIndex >= queue.length) {
-      document.getElementById("nowPlayingTitle").textContent = "Queue ended";
+      document.getElementById("nowPlayingTitle").textContent = "Queue ended"; //Fira: ensure the queue not ended.
       document.getElementById("nowPlayingSubmittedBy").textContent = "";
       return;
     }
