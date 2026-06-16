@@ -160,13 +160,13 @@ async function createUser(event) {
 
     if (!res.ok) {
         const msg = data.message || "Failed to create user.";
-        if (msg.toLowerCase().includes("username")) {
+        if (msg.toLowerCase().includes("username") || msg.toLowerCase().includes("exists")) {
             usernameError.textContent = msg;
             usernameInput.classList.add("input-error");
         } else if (msg.toLowerCase().includes("password")) {
             passwordError.textContent = msg;
             passwordInput.classList.add("input-error");
-        } else {
+        } else if (msg.toLowerCase().includes("role")) {
             alert(msg);
         }
         return;
