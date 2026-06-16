@@ -3,11 +3,117 @@
 2. showing a user table
 3. deleting a user*/
 
+// ───  User Table beginns ────────────────────────────────────────────────────────
+
+
+const USER_TABLE_LIST = 5;
+let currentUserPage = 1;
+let userData = []; // This will hold the user data fetched from the backend
+
+//when the page loads, we will fetch the user data from the backend and then render the table
+document.addEventListener("DOMContentLoaded", function () {
+  loadAndRenderUsers();
+});
+
+async function loadAndRenderUsers() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch("/api/users", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch users");
+    }
+
+    userData = await res.json();
+    renderUserTable();
+  } catch (err) {
+    console.error("Error loading users:", err);
+    alert("Failed to load users. Please try again.");
+  }
+}
+
+function renderUserTable() {
+  const tbody = document.getElementById("userTableBody");
+  const footer = document.getElementById("userTableFooter");
+  if (!tbody || !footer) return;
+
+  //clear whatever was there before
+  tbody.innerHTML = "";
+
+
+
+  const totalPages = Math.ceil(userData.length / USER_TABLE_LIST);
+
+  const startIndex = (currentUserPage - 1) * USER_TABLE_LIST;
+  const endIndex = startIndex + USER_TABLE_LIST;
+
+  const visibleUsers = userData.slice(startIndex, endIndex);
+
+  //Loop through every visible users and build table row data
+  visibleUsers.forEach(displayUsers);
+
+  //element and index are provided
+  function displayUsers(element, index) {
+    const row = document.createElement("tr");
+
+    //admin will never get a delete button
+    const deleteButton =
+      element.Role !== "admin"
+        ? `<button class="btn-small btn-delete" onclick="deleteUser('${element.UserID}', '${element.Username}')">Delete</button>`
+        : "";
+
+    row.innerHTML = `
+        <td>${element.Username}</td>
+        <td><span class="role-badge">${element.Role}</span></td>
+        <td>${element.JoinDate}</td>
+        <td>${deleteButton}</td>
+        `;
+
+    tbody.appendChild(row);
+  }
+
+  //If there are 5 users or less, no pagination is needed
+  if (userData.length <= USER_TABLE_LIST) return;
+
+  footer.innerHTML = `
+    <div class="user-pagination">
+    <button class="user-toggle-btn" onclick="showPreviousUserPage()" ${currentUserPage === 1 ? "disabled" : ""}>Previous</button>
+    <p class="user-table-info">Page ${currentUserPage} of ${totalPages}</p>
+    <button class="user-toggle-btn" onclick="showNextUserPage()" ${currentUserPage === totalPages ? "disabled" : ""}>Next</button>
+    </div>
+    `;
+}
+
+//show next page function
+function showNextUserPage() {
+  const totalPages = Math.ceil(userData.length / USER_TABLE_LIST);
+
+  if (currentUserPage < totalPages) {
+    currentUserPage++;
+    renderUserTable();
+  }
+}
+
+//show previous page function
+function showPreviousUserPage() {
+  if (currentUserPage > 1) {
+    currentUserPage--;
+    renderUserTable();
+  }
+}
+
+// ─── Create User Form ─────────────────────────────────────────────────────────
+
 const createUserForm = document.getElementById("createUserForm");
 
 createUserForm.addEventListener("submit", createUser);
 
-function createUser(event) {
+async function createUser(event) {
   event.preventDefault();
 
   const usernameInput = document.getElementById("newUsername");
@@ -22,7 +128,6 @@ function createUser(event) {
   const usernameError = document.getElementById("usernameError");
   const passwordError = document.getElementById("passwordError");
 
-  let hasError = false;
 
   //Clear old errors
   usernameError.textContent = "";
@@ -31,120 +136,38 @@ function createUser(event) {
   usernameInput.classList.remove("input-error");
   passwordInput.classList.remove("input-error");
 
-  if (!isValidUsername(username)) {
-    usernameError.textContent =
-      "Username can only include numbers, letters, underscores and periods.";
-    usernameInput.classList.add("input-error");
-    hasError = true;
-  }
+  const token = localStorage.getItem("token");
 
-  /*
-    Backend/integration:
-    Please also handle the case where the username already exists in the database 
-    So there will be no 2 same username, even with different role!
-    when displaying error message pls refer to the structure below, don't use alert coz i alr created the styling in css for better UI/UX
-      
+    const res = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ username, password, role }),
+    });
 
-      if (username.........)) {
-      usernameError.textContent =
-        "Username already exists! please choose another one ";
-      usernameInput.classList.add("input-error");
-      hasError = true;
-      }
-
-  */
-
-  //check password
-  if (!usesOnlyAllowedPasswordCharacters(password)) {
-    passwordError.textContent =
-      "Password can only include letters, numbers and special characters";
-    passwordInput.classList.add("input-error");
-    hasError = true;
-    return;
-  }
-
-  if (password.length < 8) {
-    passwordError.textContent = "Password must be at least 8 characters";
-    passwordInput.classList.add("input-error");
-    hasError = true;
-    return;
-  }
-
-  if (password === username) {
-    passwordError.textContent = "Password must be different from username";
-    passwordInput.classList.add("input-error");
-    hasError = true;
-    return;
-  }
-
-  if (!hasNumber(password)) {
-    passwordError.textContent = "Password must contain at least 1 number";
-    passwordInput.classList.add("input-error");
-    hasError = true;
-    return;
-  }
-
-  if (!hasSpecialCharacter(password)) {
-    passwordError.textContent =
-      "Password must contain at least 1 special character";
-    passwordInput.classList.add("input-error");
-    hasError = true;
-    return;
-  }
-
-  //Stop if something wrong and display the message below each form
-  if (hasError) return;
-
-  //if password matches every criteria, backend/integration change this with real API POST (username, password, role and when is the user created dd-mm-yyyy)
-  alert('User "' + username + '" created succesfully with role : ' + role);
-
-  event.target.reset();
-}
-
-//username
-function isValidUsername(username) {
-  const allowedCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.";
-
-  for (let i = 0; i < username.length; i++) {
-    if (!allowedCharacters.includes(username[i])) {
-      return false;
+    const data = await res.json();
+    
+    // if the response was not okay, error messages will be shown
+    // as in the defined error messages in the backend (look at routes/users.js)
+    if (!res.ok) {
+        const msg = data.message || "Failed to create user.";
+        if (msg.toLowerCase().includes("username")) {
+            usernameError.textContent = msg;
+            usernameInput.classList.add("input-error");
+        } else if (msg.toLowerCase().includes("password")) {
+            passwordError.textContent = msg;
+            passwordInput.classList.add("input-error");
+        } else if (msg.toLowerCase().includes("role")) {
+            alert(msg);
+        }
+        return;
     }
-  }
-  return true;
-}
 
-//password
-function usesOnlyAllowedPasswordCharacters(password) {
-  const allowedCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
-
-  for (let i = 0; i < password.length; i++) {
-    if (!allowedCharacters.includes(password[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function hasNumber(password) {
-  const numbers = "0123456789";
-  for (let i = 0; i < password.length; i++) {
-    if (numbers.includes(password[i])) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function hasSpecialCharacter(password) {
-  const allowedSpecialCharacters = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"; //according to OWASP
-  for (let i = 0; i < password.length; i++) {
-    if (allowedSpecialCharacters.includes(password[i])) {
-      return true;
-    }
-  }
-  return false;
+    alert(`User "${username}" created successfully with role: ${role}`);
+    event.target.reset();
+    loadAndRenderUsers();
 }
 
 //Toggle password visibility
@@ -169,140 +192,38 @@ if (passwordInput && togglePassword && eyeIcon && eyeIconOff) {
   });
 }
 
-//User Table starts from here
+// ─── Delete User Form ─────────────────────────────────────────────────────────
 
-/* Hint to integration/backend:
-
-   Render user table to display the list of active users on the page 
-
-   we will use pagination concept for the table where we show only 5 users each page 
-   why pagination? so admin can see all of the active users without endless scrolling 
-   how if we have 30 active users? table will be so long
-
-   below the table there will be next button to show the next 5 users
-   and also previous button to go back to previous 5 users.
-
-   For better visualization pls right click on admin html and open with live server
-*/
-
-const USER_TABLE_LIST = 5;
-let currentUserPage = 1;
-
-//when the page loads
-document.addEventListener("DOMContentLoaded", function () {
-  currentUserPage = 1;
-  renderUserTable();
-});
-
-//Render user table function
-
-function renderUserTable() {
-  const tbody = document.getElementById("userTableBody");
-  const footer = document.getElementById("userTableFooter");
-  if (!tbody || !footer) return;
-
-  //clear whatever was there before
-  tbody.innerHTML = "";
-
-  /*Integration/backend replace variable USERS below with real data
-  coz USERS is an array of users i created in the dummy data file admindata.js
-  */
-
-  const totalPages = Math.ceil(USERS.length / USER_TABLE_LIST);
-
-  const startIndex = (currentUserPage - 1) * USER_TABLE_LIST;
-  const endIndex = startIndex + USER_TABLE_LIST;
-
-  const visibleUsers = USERS.slice(startIndex, endIndex);
-
-  //Loop through every visible users and build table row data
-  visibleUsers.forEach(displayUsers);
-
-  //element and index are provided
-  function displayUsers(element, index) {
-    const row = document.createElement("tr");
-
-    //admin will never get a delete button
-    const deleteButton =
-      element.role !== "admin"
-        ? `<button class="btn-small btn-delete" onclick="deleteUser('${element.username}')">Delete</button>`
-        : "";
-
-    row.innerHTML = `
-        <td>${element.username}</td>
-        <td><span class="role-badge">${element.role}</span></td>
-        <td>${element.created}</td>
-        <td>${deleteButton}</td>
-        `;
-
-    tbody.appendChild(row);
-  }
-
-  //If there are 5 users or less, no pagination is needed
-  if (USERS.length <= USER_TABLE_LIST) return;
-
-  footer.innerHTML = `
-    <div class="user-pagination">
-    <button class="user-toggle-btn" onclick="showPreviousUserPage()" ${currentUserPage === 1 ? "disabled" : ""}>Previous</button>
-
-    <p class="user-table-info">Page ${currentUserPage} of ${totalPages}</p>
-
-    <button class="user-toggle-btn" onclick="showNextUserPage()" ${currentUserPage === totalPages ? "disabled" : ""}>Next</button>
-    </div>
-    `;
-}
-
-//show next page function
-function showNextUserPage() {
-  const totalPages = Math.ceil(USERS.length / USER_TABLE_LIST);
-
-  if (currentUserPage < totalPages) {
-    currentUserPage = currentUserPage + 1;
-    renderUserTable();
-  }
-}
-
-//show previous page function
-function showPreviousUserPage() {
-  if (currentUserPage > 1) {
-    currentUserPage = currentUserPage - 1;
-    renderUserTable();
-  }
-}
-
-//delete user function
-function deleteUser(username) {
+async function deleteUser(userID, username) {
   //confirmation
   const confirmed = confirm(
-    `Are you sure you want to delete ${username} ? this action cannot be undone`,
+    `Are you sure you want to delete ${username}? this action cannot be undone`,
   );
 
   if (!confirmed) return;
 
-  // Integration/backend replace this with real API then call renderUserTable() after it succeeds and can delete the dummy array lines below
+    const token = localStorage.getItem("token");
 
-  //This is only for dummy data
-  const index = USERS.findIndex(function (element) {
-    return element.username === username;
-  });
+    const res = await fetch(`/api/users/${userID}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
 
-  if (index !== -1) {
-    USERS.splice(index, 1);
-  }
+    if (!res.ok) {
+        alert("Failed to delete user.");
+        return;
+    }
 
-  /*after deleting a user, the current page might no longer exist
-   z.B: 
-   -Page 3 only had 1 user
-   -Admin deletes that user
-   -Now there are only 2 pages
-   -So currentUserPage must move back to page 2
-  */
+    alert(`User "${username}" deleted successfully.`);
 
-  const totalPages = Math.ceil(USERS.length / USER_TABLE_LIST);
+    //after deleting the user, we need to remove it from the userData array and re-render the table
+    userData = userData.filter((user) => user.UserID !== parseInt(userID));
 
-  if (currentUserPage > totalPages) {
-    currentUserPage = Math.max(1, totalPages);
-  }
+    const totalPages = Math.ceil(userData.length / USER_TABLE_LIST);
 
-  renderUserTable();
+    if (currentUserPage > totalPages) {
+      currentUserPage = Math.max(1, totalPages);
+    }
+
+    renderUserTable();
 }
