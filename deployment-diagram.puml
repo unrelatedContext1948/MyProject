@@ -13,59 +13,59 @@ node "Client Machine" <<device>> {
     artifact "index.html" <<Document>>
     artifact "admin.html" <<Document>>
 
-    artifact "player.js"            <<Script>>
-    artifact "visualizer.js"        <<Script>>
-    artifact "queue.js"             <<Script>>
-    artifact "auth.js"              <<Script>>
-    artifact "songadbreak.js"       <<Script>>
-    artifact "tts.js (Kokoro)"      <<Script>>
-    artifact "script.js"            <<Script>>
+    artifact "script.js"              <<Script>>
+    artifact "player.js"              <<Script>>
+    artifact "queue.js"               <<Script>>
+    artifact "auth.js"                <<Script>>
+    artifact "songadbreak.js"         <<Script>>
+    artifact "tts.js (Kokoro)"        <<Script>>
+    artifact "visualizer.js"          <<Script>>
 
-    artifact "adminauth.js"         <<Script>>
-    artifact "admindata.js"         <<Script>>
+    artifact "adminauth.js"           <<Script>>
+    artifact "admindata.js"           <<Script>>
     artifact "adminPendingAdbreaks.js" <<Script>>
-    artifact "adminsubmitforms.js"  <<Script>>
-    artifact "adminusers.js"        <<Script>>
+    artifact "adminsubmitforms.js"    <<Script>>
+    artifact "adminusers.js"          <<Script>>
 
-    artifact "Socket.IO Client"     <<Library>>
-    artifact "Web Audio API"        <<Library>>
-    artifact "Canvas API"           <<Library>>
+    artifact "Socket.IO Client"       <<Library>>
+    artifact "Web Audio API"          <<Library>>
+    artifact "Canvas API"             <<Library>>
 
     artifact "CSS Stylesheets" <<Style>> {
       artifact "style.css"
       artifact "player.css"
       artifact "queue.css"
       artifact "songadbreak.css"
+    }
+
+    artifact "CSS Admin Stylesheets" <<Style>> {
       artifact "admin.css"
     }
 
-    ' CSS dependencies
-    "index.html"      ..> "CSS Stylesheets"
-    "admin.html"      ..> "CSS Stylesheets"
+    ' HTML loads scripts
+    "index.html" ..> "script.js"
+    "index.html" ..> "player.js"
+    "index.html" ..> "queue.js"
+    "index.html" ..> "auth.js"
+    "index.html" ..> "songadbreak.js"
+    "index.html" ..> "tts.js (Kokoro)"
+    "index.html" ..> "visualizer.js"
+    "index.html" ..> "Socket.IO Client"
+    "index.html" ..> "CSS Stylesheets"
 
-    ' index.html loads
-    "index.html"      ..> "player.js"         : <<use>>
-    "index.html"      ..> "visualizer.js"     : <<use>>
-    "index.html"      ..> "queue.js"          : <<use>>
-    "index.html"      ..> "auth.js"           : <<use>>
-    "index.html"      ..> "songadbreak.js"    : <<use>>
-    "index.html"      ..> "tts.js (Kokoro)"   : <<use>>
-    "index.html"      ..> "script.js"         : <<use>>
-    "index.html"      ..> "Socket.IO Client"  : <<use>>
+    "admin.html" ..> "adminauth.js"
+    "admin.html" ..> "admindata.js"
+    "admin.html" ..> "adminPendingAdbreaks.js"
+    "admin.html" ..> "adminsubmitforms.js"
+    "admin.html" ..> "adminusers.js"
+    "admin.html" ..> "CSS Admin Stylesheets"
 
-    ' admin.html loads
-    "admin.html"      ..> "adminauth.js"             : <<use>>
-    "admin.html"      ..> "admindata.js"             : <<use>>
-    "admin.html"      ..> "adminPendingAdbreaks.js"  : <<use>>
-    "admin.html"      ..> "adminsubmitforms.js"      : <<use>>
-    "admin.html"      ..> "adminusers.js"            : <<use>>
-
-    ' JS internal dependencies
-    "player.js"       ..> "Socket.IO Client"  : <<use>>
-    "player.js"       ..> "visualizer.js"     : <<use>>
-    "visualizer.js"   ..> "Web Audio API"     : <<use>>
-    "visualizer.js"   ..> "Canvas API"        : <<use>>
-    "tts.js (Kokoro)" ..> "Web Audio API"     : <<use>>
+    ' JS dependencies
+    "player.js"       ..> "Socket.IO Client"
+    "player.js"       ..> "visualizer.js"
+    "visualizer.js"   ..> "Web Audio API"
+    "visualizer.js"   ..> "Canvas API"
+    "tts.js (Kokoro)" ..> "Web Audio API"
   }
 }
 
@@ -74,62 +74,62 @@ node "Server Machine" <<device>> {
 
   node "Node.js" <<executionEnvironment>> {
 
-    artifact "server.js"        <<Script>>
-    artifact "app.js"           <<Script>>
+    artifact "server.js"   <<Script>>
+    artifact "app.js"      <<Script>>
 
     artifact "adbreak.js (route)"  <<Script>>
     artifact "auth.js (route)"     <<Script>>
     artifact "users.js (route)"    <<Script>>
 
-    artifact "masterClock.js"   <<Script>>
-    artifact "streamState.js"   <<Script>>
-    artifact "songsadbreak.js"  <<Script>>
-    artifact "queue.js (svc)"   <<Script>>
-    artifact "youtube.js"       <<Script>>
+    artifact "masterClock.js (service)"   <<Script>>
+    artifact "streamState.js (service)"   <<Script>>
+    artifact "songsadbreak.js (service)"  <<Script>>
+    artifact "queue.js (service)"         <<Script>>
+    artifact "youtube.js (service)"       <<Script>>
 
-    artifact "playlistModel.js" <<Script>>
-    artifact "userModel.js"     <<Script>>
+    artifact "playlistModel.js (model)"   <<Script>>
+    artifact "userModel.js (model)"       <<Script>>
 
-    artifact "authorization.js" <<Script>>
-    artifact "hashPassword.js"  <<Script>>
+    artifact "authorization.js (middleware)" <<Script>>
+    artifact "hashPassword.js (middleware)"  <<Script>>
 
     artifact "Socket.IO Server" <<Library>>
 
-    database "database.sqlite" <<File>> {
-      artifact "UsersTable"
-      artifact "PlaylistsTable"
-      artifact "AdBreaksTable"
+    database "database.db" <<Database>> {
+      artifact "UsersTable"    <<Table>>
+      artifact "PlaylistsTable" <<Table>>
+      artifact "AdBreaksTable" <<Table>>
     }
 
-    ' server → app
-    "server.js"  ..> "app.js"           : <<use>>
-    "server.js"  ..> "Socket.IO Server" : <<use>>
-    "server.js"  ..> "masterClock.js"   : <<use>>
-    "server.js"  ..> "streamState.js"   : <<use>>
+    ' server entry point
+    "server.js" ..> "app.js"
+    "server.js" ..> "Socket.IO Server"
+    "server.js" ..> "masterClock.js (service)"
+    "server.js" ..> "streamState.js (service)"
 
     ' app → routes
-    "app.js"     ..> "adbreak.js (route)" : <<use>>
-    "app.js"     ..> "auth.js (route)"    : <<use>>
-    "app.js"     ..> "users.js (route)"   : <<use>>
+    "app.js" ..> "adbreak.js (route)"
+    "app.js" ..> "auth.js (route)"
+    "app.js" ..> "users.js (route)"
 
     ' routes → middleware
-    "adbreak.js (route)" ..> "authorization.js" : <<use>>
-    "auth.js (route)"    ..> "hashPassword.js"  : <<use>>
-    "users.js (route)"   ..> "authorization.js" : <<use>>
+    "adbreak.js (route)" ..> "authorization.js (middleware)"
+    "auth.js (route)"    ..> "hashPassword.js (middleware)"
+    "users.js (route)"   ..> "authorization.js (middleware)"
 
-    ' routes → services/models
-    "adbreak.js (route)" ..> "songsadbreak.js"  : <<use>>
-    "auth.js (route)"    ..> "userModel.js"     : <<use>>
-    "users.js (route)"   ..> "userModel.js"     : <<use>>
+    ' routes → models/services
+    "adbreak.js (route)"  ..> "songsadbreak.js (service)"
+    "auth.js (route)"     ..> "userModel.js (model)"
+    "users.js (route)"    ..> "userModel.js (model)"
 
-    ' services → models/db
-    "streamState.js"    ..> "masterClock.js"   : <<use>>
-    "streamState.js"    ..> "playlistModel.js" : <<use>>
-    "songsadbreak.js"   ..> "database.sqlite"  : <<use>>
-    "playlistModel.js"  ..> "database.sqlite"  : <<use>>
-    "userModel.js"      ..> "database.sqlite"  : <<use>>
-    "queue.js (svc)"    ..> "playlistModel.js" : <<use>>
-    "youtube.js"        ..> "playlistModel.js" : <<use>>
+    ' services/models → DB
+    "streamState.js (service)"  ..> "masterClock.js (service)"
+    "streamState.js (service)"  ..> "playlistModel.js (model)"
+    "songsadbreak.js (service)" ..> "database.db"
+    "playlistModel.js (model)"  ..> "database.db"
+    "userModel.js (model)"      ..> "database.db"
+    "queue.js (service)"        ..> "playlistModel.js (model)"
+    "youtube.js (service)"      ..> "playlistModel.js (model)"
   }
 }
 
@@ -139,18 +139,18 @@ node "YouTube Servers" <<device>> {
 }
 
 node "HuggingFace CDN" <<device>> {
-  artifact "Kokoro Model" <<File>>
+  artifact "Kokoro Model"              <<File>>
   artifact "@huggingface/transformers" <<Library>>
 }
 
 ' ─── COMMUNICATION PATHS ──────────────────────────────────────────────────────
-"Web Browser"    -- "Node.js"          : <<HTTP / WebSocket>>
-"Web Browser"    -- "YouTube Servers"  : <<HTTPS>>
-"Web Browser"    -- "HuggingFace CDN"  : <<HTTPS>>
+"Web Browser"  --  "Node.js"          : <<HTTP / WebSocket>>
+"Web Browser"  --  "YouTube Servers"  : <<HTTPS>>
+"Web Browser"  --  "HuggingFace CDN"  : <<HTTPS>>
 
-"player.js"          ..> "IFrame API"                   : <<use>>
-"tts.js (Kokoro)"    ..> "Kokoro Model"                 : <<use>>
-"tts.js (Kokoro)"    ..> "@huggingface/transformers"    : <<use>>
-"Socket.IO Client"   ..> "Socket.IO Server"             : <<WebSocket>>
+"player.js"        ..> "IFrame API"                : <<use>>
+"tts.js (Kokoro)"  ..> "Kokoro Model"              : <<use>>
+"tts.js (Kokoro)"  ..> "@huggingface/transformers" : <<use>>
+"Socket.IO Client" ..> "Socket.IO Server"          : <<WebSocket>>
 
 @enduml
