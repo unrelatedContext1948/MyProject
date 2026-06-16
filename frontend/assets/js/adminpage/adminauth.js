@@ -1,10 +1,28 @@
 /*to handle logout from adminpage
-different behaviour from logout() for the authorized user
+different behaviour from logout() for the authorized user:
+- same token invalidation logic
+- redirects to index.html instead of resetting navbar elements
+  (which don't exist on admin.html)
 */
 
-function logoutAdmin() {
-  //Integration/backend add real API here, also the token and role things
+async function logoutAdmin() {
+  const token = localStorage.getItem("token");
 
-  //After that, redirect back to main page
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((response) => {
+    if (response.ok) {
+      console.log("Admin successfully logged out from backend");
+    } else {
+      console.error("Failed to log out from backend");
+    }
+  });
+
+  localStorage.clear();
+
   window.location.href = "index.html";
 }
