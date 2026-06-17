@@ -18,7 +18,7 @@ const UserModel = {
         if (!user) {
             return null;
         }
-        const isMatch = (bcrypt.compareSync(password, user.Password);
+        const isMatch = bcrypt.compareSync(password, user.Password);
         return isMatch ? user : null;
     },
 
