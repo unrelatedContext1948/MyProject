@@ -107,4 +107,22 @@ router.post("/", authenticate, authorize("admin"), async (req, res) => {
 
 });
 
+router.delete("/:id", authenticate, authorize("admin"), (req, res) => {
+    const userID = parseInt(req.params.id);
+
+    if (!userID) {
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    try {
+        const result = UserModel.deleteUser(userID);
+        if (result.changes === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ message: "Failed to delete user" });
+    }
+});
+
 module.exports = router;
