@@ -12,11 +12,8 @@ const express = require("express");
 const path = require("path");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
-<<<<<<< Updated upstream
 const streamState = require("./services/streamState");
-=======
 const adBreakRoutes = require("./routes/adbreak");
->>>>>>> Stashed changes
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
 const { authenticate } = require("./middleware/authorization");
