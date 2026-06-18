@@ -7,18 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let source = null;
   let animationId = null;
 
-  const LABELS = [
-    { name: "TREBLE",   angle: -Math.PI / 2 },
-    { name: "HIGH-MID", angle: -Math.PI / 4 },
-    { name: "MID",      angle: 0 },
-    { name: "LOW-MID",  angle: Math.PI / 4 },
-    { name: "BASS",     angle: Math.PI / 2 },
-    { name: "SUB-BASS", angle: (3 * Math.PI) / 4 },
-    { name: "LOW",      angle: Math.PI },
-    { name: "MID-HIGH", angle: -(3 * Math.PI) / 4 },
-  ];
-
-  async function setupAudio(audioElement) {
+async function setupAudio(audioElement) {
     audioContext = new AudioContext();
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;
@@ -33,82 +22,59 @@ document.addEventListener("DOMContentLoaded", function () {
     canvas.height = canvas.clientHeight;
   }
 
-  function drawRing() {
+  function drawVisualizer() {
+    analyser.fftSize = 128;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-
-    const NUM_BARS = 64;
+    resizeCanvas();
 
     function draw() {
       analyser.getByteFrequencyData(dataArray);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const ringRadius = Math.min(cx, cy) * 0.45;
-      const barMaxLength = ringRadius * 0.5;
-      const barWidth = (2 * Math.PI * ringRadius) / NUM_BARS * 0.5;
-
-      // Draw glowing ring
-      ctx.beginPath();
-      ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = "#00ff88";
-      ctx.lineWidth = 3;
-      ctx.shadowColor = "#00ff88";
-      ctx.shadowBlur = 20;
-      ctx.stroke();
       ctx.shadowBlur = 0;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw frequency bars around the ring
-      for (let i = 0; i < NUM_BARS; i++) {
-        const angle = (i / NUM_BARS) * Math.PI * 2 - Math.PI / 2;
-        const binIndex = Math.floor((i / NUM_BARS) * bufferLength);
-        const value = dataArray[binIndex] / 255;
-        const barLength = value * barMaxLength;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const baseRadius = Math.min(centerX, centerY) * 0.4;
 
-        const x1 = cx + Math.cos(angle) * ringRadius;
-        const y1 = cy + Math.sin(angle) * ringRadius;
-        const x2 = cx + Math.cos(angle) * (ringRadius + barLength);
-        const y2 = cy + Math.sin(angle) * (ringRadius + barLength);
+      ctx.beginPath();
 
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.strokeStyle = "#00ff88";
-        ctx.lineWidth = barWidth;
-        ctx.lineCap = "round";
-        ctx.shadowColor = "#00ff88";
-        ctx.shadowBlur = 12;
-        ctx.stroke();
+      // Upper half (left to right)
+      for (let i = 0; i < bufferLength; i++) {
+        if (i > bufferLength * 0.8) continue;
+        const amplitude = dataArray[i] / 255.0;
+        const r = baseRadius + (amplitude * baseRadius * 0.8);
+        const angle = Math.PI + (i / (bufferLength * 0.8)) * Math.PI;
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
 
-      ctx.shadowBlur = 0;
+      // Lower half (mirrored, right to left)
+      for (let i = Math.floor(bufferLength * 0.8); i >= 0; i--) {
+        const amplitude = dataArray[i] / 255.0;
+        const r = baseRadius + (amplitude * baseRadius * 0.8);
+        const angle = (i / (bufferLength * 0.8)) * Math.PI;
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        ctx.lineTo(x, y);
+      }
 
-      // Draw labels
-      ctx.fillStyle = "#00ff88";
-      ctx.font = `bold ${Math.min(cx, cy) * 0.07}px monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      ctx.closePath();
 
-      const labelRadius = ringRadius + barMaxLength + Math.min(cx, cy) * 0.12;
+      ctx.fillStyle = "rgba(0, 255, 0, 0.15)";
+      ctx.fill();
 
-      LABELS.forEach(({ name, angle }) => {
-        const lx = cx + Math.cos(angle) * labelRadius;
-        const ly = cy + Math.sin(angle) * labelRadius;
-
-        ctx.save();
-        ctx.translate(lx, ly);
-        ctx.rotate(angle + Math.PI / 2);
-        ctx.fillText(name, 0, 0);
-        ctx.restore();
-      });
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "lime";
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = "lime";
+      ctx.stroke();
 
       animationId = requestAnimationFrame(draw);
     }
-
     draw();
   }
 
@@ -120,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
     resizeCanvas();
     await setupAudio(audioElement);
     audioElement.play();
-    drawRing();
+    drawVisualizer();
   }
 
   function hide() {
