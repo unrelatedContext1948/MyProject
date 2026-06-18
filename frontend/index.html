@@ -105,7 +105,16 @@
               - use websocket
               -->
             </div>
-          </div>
+          
+            <audio id="adAudio" crossorigin="anonymous" style="display:none"></audio>
+              <div id="adBreakOverlay" class="ad-break-overlay hidden">
+              <canvas id="waveformCanvas"></canvas>
+              <h2 id="adBreakTitle"></h2>
+              <p id="adBreakTextDisplay"></p>
+              </div>
+        </div>
+
+
           <div class="tv-control-bar">
             <!--Dots and line are under The TV-->
             <div class="tv-indicator"></div>
@@ -226,9 +235,11 @@
       <!--End of main content-->
     </div>
 
+
     <!--Syaloom JS, don't change anything!-->
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/player.js"></script>
+    <script src="assets/js/visualizer.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="assets/js/queue.js"></script>
     <script src="assets/js/songadbreak.js"></script>

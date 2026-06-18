@@ -16,6 +16,7 @@
 }
 
 .tv-screen {
+  position: relative;
   width: 560px;
   aspect-ratio: 16 / 9; /*ratio of 16:9 ALWAYS!!!*/
   background-color: black;
@@ -23,6 +24,28 @@
   border: 2px solid #4a2511;
   overflow: hidden; /* coz the edge is bit rounded, so video will not go outside of the edge, coz vid is square ecke*/
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+
+
+.ad-break-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#waveformCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.hidden {
+  display: none;
 }
 
 .tv-control-bar {
