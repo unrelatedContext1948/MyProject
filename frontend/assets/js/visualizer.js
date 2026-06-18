@@ -33,26 +33,36 @@ async function setupAudio(audioElement) {
       analyser.getByteFrequencyData(dataArray);
 
       ctx.shadowBlur = 0;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = Math.min(centerX, centerY) * 0.4;
       const usedBins = Math.floor(bufferLength * 0.7);
 
-      // Smooth the data with a simple moving average for organic feel
+      // Mirror the frequency data so the shape is symmetric
+      const mirrored = new Float32Array(usedBins);
+      const half = Math.floor(usedBins / 2);
+      for (let i = 0; i < half; i++) {
+        const val = dataArray[i] / 255.0;
+        mirrored[i] = val;
+        mirrored[usedBins - 1 - i] = val;
+      }
+
+      // Smooth with moving average for organic feel
       const smoothed = new Float32Array(usedBins);
       for (let i = 0; i < usedBins; i++) {
-        const prev = dataArray[Math.max(0, i - 1)] / 255.0;
-        const curr = dataArray[i] / 255.0;
-        const next = dataArray[Math.min(usedBins - 1, i + 1)] / 255.0;
+        const prev = mirrored[Math.max(0, i - 1)];
+        const curr = mirrored[i];
+        const next = mirrored[Math.min(usedBins - 1, i + 1)];
         smoothed[i] = (prev + curr * 2 + next) / 4;
       }
 
       ctx.beginPath();
       for (let i = 0; i < usedBins; i++) {
         const r = baseRadius + smoothed[i] * baseRadius * 0.7;
-        const angle = (i / usedBins) * Math.PI * 2;
+        const angle = (i / usedBins) * Math.PI * 2 - Math.PI / 2;
         const x = centerX + Math.cos(angle) * r;
         const y = centerY + Math.sin(angle) * r;
         if (i === 0) ctx.moveTo(x, y);
