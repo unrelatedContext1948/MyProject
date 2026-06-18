@@ -22,8 +22,9 @@ async function setupAudio(audioElement) {
     canvas.height = canvas.clientHeight;
   }
 
-  function drawVisualizer() {
-    analyser.fftSize = 128;
+  function drawAuraRing() {
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.85;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     resizeCanvas();
@@ -37,39 +38,38 @@ async function setupAudio(audioElement) {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = Math.min(centerX, centerY) * 0.4;
+      const usedBins = Math.floor(bufferLength * 0.7);
+
+      // Smooth the data with a simple moving average for organic feel
+      const smoothed = new Float32Array(usedBins);
+      for (let i = 0; i < usedBins; i++) {
+        const prev = dataArray[Math.max(0, i - 1)] / 255.0;
+        const curr = dataArray[i] / 255.0;
+        const next = dataArray[Math.min(usedBins - 1, i + 1)] / 255.0;
+        smoothed[i] = (prev + curr * 2 + next) / 4;
+      }
 
       ctx.beginPath();
-
-      // Upper half (left to right)
-      for (let i = 0; i < bufferLength; i++) {
-        if (i > bufferLength * 0.8) continue;
-        const amplitude = dataArray[i] / 255.0;
-        const r = baseRadius + (amplitude * baseRadius * 0.8);
-        const angle = Math.PI + (i / (bufferLength * 0.8)) * Math.PI;
+      for (let i = 0; i < usedBins; i++) {
+        const r = baseRadius + smoothed[i] * baseRadius * 0.7;
+        const angle = (i / usedBins) * Math.PI * 2;
         const x = centerX + Math.cos(angle) * r;
         const y = centerY + Math.sin(angle) * r;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-
-      // Lower half (mirrored, right to left)
-      for (let i = Math.floor(bufferLength * 0.8); i >= 0; i--) {
-        const amplitude = dataArray[i] / 255.0;
-        const r = baseRadius + (amplitude * baseRadius * 0.8);
-        const angle = (i / (bufferLength * 0.8)) * Math.PI;
-        const x = centerX + Math.cos(angle) * r;
-        const y = centerY + Math.sin(angle) * r;
-        ctx.lineTo(x, y);
-      }
-
       ctx.closePath();
 
-      ctx.fillStyle = "rgba(0, 255, 0, 0.15)";
+      const auraGradient = ctx.createRadialGradient(centerX, centerY, baseRadius * 0.5, centerX, centerY, baseRadius * 2);
+      auraGradient.addColorStop(0,   "rgba(0, 255, 0, 0.4)");
+      auraGradient.addColorStop(0.5, "rgba(0, 255, 0, 0.1)");
+      auraGradient.addColorStop(1,   "rgba(0, 255, 0, 0)");
+      ctx.fillStyle = auraGradient;
       ctx.fill();
 
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 2;
       ctx.strokeStyle = "lime";
-      ctx.shadowBlur = 30;
+      ctx.shadowBlur = 15;
       ctx.shadowColor = "lime";
       ctx.stroke();
 
@@ -86,7 +86,7 @@ async function setupAudio(audioElement) {
     resizeCanvas();
     await setupAudio(audioElement);
     audioElement.play();
-    drawVisualizer();
+    drawAuraRing();
   }
 
   function hide() {
