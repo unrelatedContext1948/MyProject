@@ -129,7 +129,7 @@ node "Server Machine" <<device>> {
     "playlistModel.js (model)"  ..> "database.db"
     "userModel.js (model)"      ..> "database.db"
     "queue.js (service)"        ..> "playlistModel.js (model)"
-    "youtube.js (service)"      ..> "playlistModel.js (model)"
+
   }
 }
 
@@ -144,7 +144,7 @@ node "HuggingFace CDN" <<device>> {
 }
 
 ' ─── COMMUNICATION PATHS ──────────────────────────────────────────────────────
-"Web Browser"  --  "Node.js"          : <<HTTP / WebSocket>>
+"Web Browser"  --  "Node.js"          : <<HTTP>>
 "Web Browser"  --  "YouTube Servers"  : <<HTTPS>>
 "Web Browser"  --  "HuggingFace CDN"  : <<HTTPS>>
 
