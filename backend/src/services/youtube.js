@@ -56,16 +56,9 @@ async function getVideoInfo(url) {
   const info = await yt.getBasicInfo(videoId);
   const basic = info.basic_info;
 
-  console.log("author:", basic.author);  
-  console.log("title:", basic.title);  
-
-  const channel = typeof basic.author === "object" 
-    ? basic.author.name 
-    : basic.author;
-
   return {
     title: basic.title,
-    channel: channel,
+    channel: basic.author.name || basic.author,
     duration: getDuration(basic.duration),
     videoURL: url,
   };

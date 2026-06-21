@@ -20,12 +20,12 @@ const PlaylistModel = {
   
   
   addSongToPlaylist: (songData) => {
-    const { Title, Channel, Duration, VideoURL, SubmittedBy } = songData;
+    const { Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL } = songData;
     const sql = `
-            INSERT INTO PlaylistsTable (Title, Channel, Duration, VideoURL, SubmittedBy) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO PlaylistsTable (Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-    return db.prepare(sql).run(Title, Channel, Duration, VideoURL, SubmittedBy);
+    return db.prepare(sql).run(Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL);
   },
 
   // 3. Remove a song from a playlist in the database

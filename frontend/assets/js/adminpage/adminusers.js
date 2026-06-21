@@ -1,7 +1,9 @@
-/* This file is for user management including:
-1. creating a new user
-2. showing a user table
-3. deleting a user*/
+/* 
+This file is for user management including:
+1. shows user table
+2. creates a new user
+3. deletes an existing user
+*/
 
 // ───  User Table beginns ────────────────────────────────────────────────────────
 

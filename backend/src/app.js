@@ -58,7 +58,7 @@ app.get("/api/queue", (req, res) => {
 
 // API route to submit a new track to the queue, protected by authentication middleware
 app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => {
-  const { VideoURL } = req.body;
+  const { VideoURL, StartTime, EndTime } = req.body;
  
   if (!VideoURL) {
     return res.status(400).json({ error: "VideoURL is required" });
@@ -70,6 +70,8 @@ app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => 
       Title: videoInfo.title,
       Channel: videoInfo.channel,
       Duration: videoInfo.duration,
+      StartTime: StartTime,
+      EndTime: EndTime,
       VideoURL: videoInfo.videoURL,
       SubmittedBy: req.user.username,
     });

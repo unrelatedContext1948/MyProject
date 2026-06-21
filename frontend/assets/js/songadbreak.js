@@ -1,5 +1,4 @@
-/* Submit Track Form : when the authorized user/admin submit youtube Link
-For Backend/integration replace the alert("Track submitted to queue!") with real API POST : URL, starttime endtime, submitted by */
+// ––––– Submit Youtube URL Form for Users –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––-
 
 const submitTrackForm = document.getElementById("submitTrackForm");
 
@@ -10,13 +9,15 @@ async function submitTrack(event) {
 
   const url = document.getElementById("trackURL").value.trim(); // trim to delete whitespaces
   const token = localStorage.getItem("token");
+  const startTime = document.getElementById("userStartTime").value.trim();
+  const endTime = document.getElementById("userEndTime").value.trim();
   const res = await fetch("/api/queue/submit", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ VideoURL: url }),
+    body: JSON.stringify({ VideoURL: url, StartTime: startTime, EndTime: endTime}),
   });
 
   if (!res.ok) {
@@ -30,17 +31,33 @@ async function submitTrack(event) {
   event.target.reset(); // clear the form, so that it can be used for the next submission
 }
 
-/* Submit Ad Break Form : when the authorized user/admin submit youtube Link
-For Backend/integration replace alert("Ad Break submitted for approval!")with real API POST : adbreaktext, and submitted by */
+// ––––– Submit Ad Break for Users –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 const submitAdBreakForm = document.getElementById("submitAdBreakForm");
 
 submitAdBreakForm.addEventListener("submit", submitAdBreak);
 
-function submitAdBreak(event) {
+async function submitAdBreak(event) {
   event.preventDefault();
 
   const text = document.getElementById("adBreakText").value.trim();
+  const username = localStorage.getItem("username");
+  const status = localStorage.getItem("status");
+  const token = localStorage.getItem("token");
+  const res = await fetch("/api/adbreak/submitAdText", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ username, adBreakText: text, status}),
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    alert(data.message || "Failed to submit track. Please try again.");
+    return;
+  }
 
   alert("Ad Break submitted for approval!");
 

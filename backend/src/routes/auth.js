@@ -19,7 +19,7 @@ and UserModel.updateToken() to save the generated token in the database
 */
 
 
-router.post ("/login", express.json(), (req, res) => {
+router.post ("/login", express.json(), async (req, res) => {
 
     const { username, password } = req.body;
 
@@ -61,7 +61,7 @@ and UserModel.updateToken() to set the user's token to null in the database
 */
 
 
-router.post("/logout", authenticate, (req,res) => {
+router.post("/logout", authenticate, async (req,res) => {
     UserModel.updateToken(req.user.userID, null);
     return res.status(200).json ({
         message: "Successfully logged out!"
