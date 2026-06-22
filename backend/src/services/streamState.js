@@ -13,7 +13,7 @@ This allows new users to join the current stream and watch the current video pla
 of watching the first video in the queue whenever they join the website.
  */
 
-
+const masterClock = require("./masterClock");
 const PlaylistModel = require("../models/playlistModel");
 
 // Current stream state stored in backend memory
@@ -27,16 +27,65 @@ let videoStartTime = Date.now();
 Load the latest queue from the database
 */
 function loadQueue() {
-    queue = PlaylistModel.getSongsInPlaylist();
-    return queue;
+  queue = PlaylistModel.getSongsInPlaylist();
+  return queue;
 }
 // return the currently playing video based on currentIndex
 // if the in-memory queue is empty, load it from the database
-function getCurrentVideo (){
-    if(queue.length === 0) {
-        loadQueue();
+function getCurrentVideo() {
+  if (queue.length === 0) {
+    loadQueue();
+  }
+  return queue[currentIndex] || null;
+}
+
+// We need to know how much time will be needed for the placement
+// of the next merged AdBreak so we can after how many songs
+// an ad break should come.
+// this methode is therefore here to count the time of several songs
+// so at the end we can put the ad break after 15 minutes of played music
+function parseDuration(duration) {
+  if (!duration) return 0;
+  const parts = duration.split(":").map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return 0;
+}
+
+// This is the function that calculate after how many songs an
+// ad break must be placed at
+function buildMergedQueue(nextAdBreakIn) {
+  if (queue.length === 0) loadQueue();
+
+  // takes the 6 songs of the queue
+  const upcoming = queue.slice(currentIndex + 1, currentIndex + 7);
+
+  // No ad break scheduled or it's more than an hour away → plain songs list
+  if (nextAdBreakIn === null || nextAdBreakIn > 900) {
+    return upcoming.map((s) => ({ ...s, type: "song" }));
+  }
+
+  let accumulated = 0; // time accumlated
+  let insertAt = upcoming.length; // default: after all visible items
+
+  // calculated time accumlated for each song and insert it at the index shere the specified time threshold is (after 15mins)
+  for (let i = 0; i < upcoming.length; i++) {
+    if (accumulated >= nextAdBreakIn) {
+      insertAt = i;
+      break;
     }
-    return queue [currentIndex] || null;
+    accumulated += parseDuration(upcoming[i].Duration);
+  }
+
+  // insert the ad break at the calculated index
+  const merged = upcoming.map((s) => ({ ...s, type: "song" }));
+  merged.splice(insertAt, 0, {
+    type: "adbreak",
+    Title: "Ad Break",
+    AdText: "Stay tuned – a short break is coming up.",
+  });
+
+  return merged.slice(0, 6); // secure that there is just 6 elements in the queue
 }
 
 /*
@@ -48,15 +97,17 @@ they can immediately continue around timestamp 0:45
 instead of watching the first video from the beginning of the queue when they join the website
 */
 function getCurrentStream() {
-    const currentVideo = getCurrentVideo();
+  const currentVideo = getCurrentVideo();
+  const nextAdBreakIn = masterClock.nextAdBreakTime
+    ? Math.max(0, Math.floor((masterClock.nextAdBreakTime - Date.now()) / 1000))
+    : null;
 
-    return{
-        currentVideo,
-        currentIndex,
-        currentTime: Math.floor(
-            (Date.now() - videoStartTime) /1000
-        )
-    };
+  return {
+    currentVideo,
+    currentIndex,
+    currentTime: Math.floor((Date.now() - videoStartTime) / 1000),
+    mergedQueue: buildMergedQueue(nextAdBreakIn),
+  };
 }
 
 /*
@@ -65,37 +116,36 @@ function used when frontend notifies the server that the current vid
 has ended
 */
 function moveToNextVideo() {
-    if(queue.length === 0){
-        loadQueue();
-    }
-    currentIndex++;
-// temporary for synchronization testing
-// loops back to first video when the queue ends (so no silence)
-// later this will be replaced with random videos from PlaylistsTable when the queue ends (so its not final yet for this function)
-    if(currentIndex >= queue.length) {
-        currentIndex = 0;
-    }
-    // reset the synchronization timer because a new video has started playing
-    // the backend uses videoStartTime to estimate playback position od the current vid for newly connected users
-    videoStartTime = Date.now();
+  if (queue.length === 0) {
+    loadQueue();
+  }
+  currentIndex++;
+  // temporary for synchronization testing
+  // loops back to first video when the queue ends (so no silence)
+  // later this will be replaced with random videos from PlaylistsTable when the queue ends (so its not final yet for this function)
+  if (currentIndex >= queue.length) {
+    currentIndex = 0;
+  }
+  // reset the synchronization timer because a new video has started playing
+  // the backend uses videoStartTime to estimate playback position od the current vid for newly connected users
+  videoStartTime = Date.now();
 
-    return getCurrentStream();
-
+  return getCurrentStream();
 }
 
 /*
 Refresh queue data from database
 Used after a new video is submitted so the backend has the latest queue data */
 function refreshQueue() {
-    loadQueue();
-   
-    return queue;
+  loadQueue();
+
+  return queue;
 }
 
 module.exports = {
-    loadQueue,
-    getCurrentVideo,
-    getCurrentStream,
-    moveToNextVideo,
-    refreshQueue
-}
+  loadQueue,
+  getCurrentVideo,
+  getCurrentStream,
+  moveToNextVideo,
+  refreshQueue,
+};
