@@ -13,7 +13,6 @@ const http = require ("http");
 const { Server } = require ("socket.io");
 
 const streamState = require("./src/services/streamState");
-const masterClock = require("./src/services/masterClock");
 
 const PORT = 3000; //typically for Node-Servers
 
@@ -32,22 +31,6 @@ const io = new Server(server, {
 });
 //Make the socket.io instance available inside app.js routes
 app.set("io", io);
-
-// Pre-load the queue before anyone connects
-streamState.loadQueue();
-
-// Start the 15-minute ad-break timer
-masterClock.start();
-
-masterClock.on("adBreakStart", (adBreak) => {
-    io.emit("adBreakStart", adBreak);
-});
-
-masterClock.on("adBreakEnd", () => {
-    io.emit("adBreakEnd");
-});
-
-
 
 // Listen for new client connections
 // Each client receives the current stream state when it connects
@@ -71,7 +54,6 @@ io.on("connection", (socket) => {
 
   });
 });
-
 
 // Start server
 // changed from app.listen --> server.listen

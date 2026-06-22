@@ -76,13 +76,13 @@ const songsAdbreak = {
   },
 
 
-  // 5. Call all ad breaks that has been approved from the database.
-  getApprovedAdBreaks: () => {
+  // 8. Call all ad breaks that has been approved from the database.
+  getAdBreaksToQueue: () => {
     const sql = `
             SELECT * FROM AdBreaksTable 
-            WHERE Status = 'approved' ORDER BY AdBreakID DESC
+            WHERE Status = ?
         `;
-    return db.prepare(sql).all();
+    return db.prepare(sql).all("approved");
   },
 };
 module.exports = songsAdbreak;

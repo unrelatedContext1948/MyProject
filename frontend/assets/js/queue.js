@@ -28,9 +28,9 @@ async function renderQueue() {
   /* we only choose 6 items after the currently playing song, 
     so we use currentIndex + 1 as the start so the current song is NOT!!! included. */
 
-  const visibleTrack = queue;
+  const visibleTrack = queue.slice(currentIndex + 1, currentIndex + 7);
 
-  if (!visibleTrack || visibleTrack.length === 0) {
+  if (visibleTrack.length === 0) {
     container.innerHTML = `<span> No more items in the queue</span>`;
     return;
   }

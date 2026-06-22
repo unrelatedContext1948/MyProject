@@ -1,42 +1,21 @@
 /* for volume control and now playing content 
 actual playback will be handled by backend/integration 
 */
-const socket = io();
-
 let player; // the YouTube IFrame Player instance
 let queue = []; // all songs fetched from the backend
 let currentIndex = 0; // index of the currently playing song
 
 // This function is called by the YouTube IFrame API when it's ready
 function onYouTubeIframeAPIReady() {
-  socket.on("currentStream", (stream) => {
-    currentVideo = stream.currentVideo;
-    queue = stream.mergedQueue;
-
-    if (!player) {
-      loadQueueThenPlay(stream);
-    } else {
-      showCurrentSong();
-      if (typeof renderQueue === "function") renderQueue();
-    }
-  });
-
-  socket.on("videoChanged", (stream) => {
-    currentVideo = stream.currentVideo;
-    queue = stream.mergedQueue;
-
-    if (player && typeof player.loadVideoById === "function") {
-      const videoId = extractVideoId(currentVideo.VideoURL);
-      player.loadVideoById(videoId);
-    }
-
-    showCurrentSong();
-    if (typeof renderQueue === "function") renderQueue();
-  });
+  loadQueueThenPlay();
 }
 
-async function loadQueueThenPlay(stream) {
-  if (!currentVideo) {
+async function loadQueueThenPlay() {
+  // Fetch the queue from the backend
+  const res = await fetch("/api/queue");
+  queue = await res.json();
+
+  if (queue.length === 0) {
     document.getElementById("nowPlayingTitle").textContent = "Queue is empty";
     return;
   }
@@ -75,7 +54,14 @@ function onPlayerReady() {
 function onPlayerStateChange(event) {
   // YT.PlayerState.ENDED === 0 — fires when the current video finishes
   if (event.data === YT.PlayerState.ENDED) {
-    socket.emit("videoEnded");
+    currentIndex++;
+
+    // If there are no more songs, show a message and stop
+    if (currentIndex >= queue.length) {
+      document.getElementById("nowPlayingTitle").textContent = "Queue ended"; //Fira: ensure the queue not ended.
+      document.getElementById("nowPlayingSubmittedBy").textContent = "";
+      return;
+    }
 
     // Load and play the next song
     const videoId = extractVideoId(queue[currentIndex].VideoURL);
@@ -89,18 +75,6 @@ function onPlayerStateChange(event) {
     updateVolume(); // Ensure the new video starts at the current volume
   }
 }
-
-// ─── Ad break events ─────────────────────────────────────────────────────────
-
-socket.on("adBreakStart", (adBreak) => {
-  visualizer.show(adBreak, adBreak.AdBreakURL);
-});
-
-socket.on("adBreakEnd", () => {
-  visualizer.hide();
-});
-
-// ─── UI helpers ──────────────────────────────────────────────────────────────
 
 // Extracts the YouTube video ID from a full URL
 function extractVideoId(url) {
