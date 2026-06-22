@@ -77,7 +77,19 @@ router.post(
   },
 );
 
-// 5. Call all ad breaks that has been approved from the database.
+//------------------------------------------------//
+//fira new update.
+//5. Convert the ad break text to audio and save the audio to database.
+router.get("/generateAudio", async(req, res) => {
+    const { adBreakId } = req.query;
+    await songsAdBreak.generateAudio(adBreakId);
+    res.status(200).json({
+        message: " Ad break audio is successfully generated."
+    });
+});
+//-----------------------------------------------------//
+
+// 8. Call all ad breaks that has been approved from the database.
 router.get("/adBreaksToQueue", (req, res) => {
   const adBreaks = songsAdBreak.getAdBreaksToQueue();
   res.json(adBreaks);
