@@ -41,46 +41,40 @@ const songsAdbreak = {
     return db.prepare(sql).run(adBreakId);
   },
 
-
   //------------------------------------------------------//
-    //fira new update.
-    //5. Call the approved ad break text to be converted to audio.
-    getApprovedAdBreakText: (adBreakId) => {
-        const sql = `
+  //fira new update.
+  //5. Call the approved ad break text to be converted to audio.
+  getApprovedAdBreakText: (adBreakId) => {
+    const sql = `
             SELECT AdBreakText FROM AdBreaksTable 
             WHERE AdBreakID = ?
             AND Status = ?
         `;
-        return db.prepare(sql).get(adBreakId,"approved");
-    },
- 
-    // 6. Save the converted ad break audio to database.
-    adBreakAudio: function(adBreakId, adBreakAudio) {
-        const sql = `
+    return db.prepare(sql).get(adBreakId, "approved");
+  },
+
+  // 6. Save the converted ad break audio to database.
+  adBreakAudio: function (adBreakId, adBreakAudio) {
+    const sql = `
         UPDATE AdBreaksTable 
         SET adBreakURL = ? 
         WHERE AdBreakID = ?`;
-        return db.prepare(sql).run(adBreakAudio, adBreakId);
-    },
+    return db.prepare(sql).run(adBreakAudio, adBreakId);
+  },
 
-    //7. Generate the ad break audio from the approved ad break text.
-    generateAudio: async function(AdBreakID) {
-        //i. Get the approved text.
-        const adBreakText = this.getApprovedAdBreakText(AdBreakID);
+  //7. Generate the ad break audio from the approved ad break text.
+  generateAudio: async function (AdBreakID) {
+    //i. Get the approved text.
+    const adBreakText = this.getApprovedAdBreakText(AdBreakID);
 
-        //ii. Convert the ad break text to audio.
-        const adBreakAudio = await generateAudio(adBreakText);
-        return adBreakAudio;
+    //ii. Convert the ad break text to audio.
+    const adBreakAudio = await generateAudio(adBreakText);
+    return adBreakAudio;
 
-        //iii. Save the converted ad break audio to database.
-        this.adBreakAudio(AdBreakID, adBreakAudio);  
-    },
+    //iii. Save the converted ad break audio to database.
+    this.adBreakAudio(AdBreakID, adBreakAudio);
+  },
 
-
-    //----------------------------------------------//
-
-  // 8. Call all ad breaks that has been approved from the database.
-  getAdBreaksToQueue: () => {
 
   // 5. Call all ad breaks that has been approved from the database.
   getApprovedAdBreaks: () => {
