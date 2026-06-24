@@ -1,4 +1,5 @@
 const db = require("../database/database");
+const generateSpeech = require("./tts");
 
 const songsAdbreak = {
   // 1. Add ad break text to the database.
@@ -12,11 +13,11 @@ const songsAdbreak = {
 
   // 2. Display pending ad breaks at the admin dashboard.
   getPendingAdBreaks: () => {
-    return db
-      .prepare(
-        `SELECT * FROM AdBreaksTable WHERE Status = 'pending' ORDER BY AdBreakID DESC`,
-      )
-      .all();
+    const sql = `
+              SELECT * FROM AdBreaksTable 
+              WHERE Status = 'pending' ORDER BY AdBreakID DESC
+              `;
+    return db.prepare(sql).all();
   },
 
   // 3. Approve ad break text.
@@ -57,30 +58,38 @@ const songsAdbreak = {
   adBreakAudio: function (adBreakId, adBreakAudio) {
     const sql = `
         UPDATE AdBreaksTable 
-        SET adBreakURL = ? 
+        SET AdBreakURL = ? 
         WHERE AdBreakID = ?`;
     return db.prepare(sql).run(adBreakAudio, adBreakId);
   },
 
   //7. Generate the ad break audio from the approved ad break text.
   generateAudio: async function (AdBreakID) {
-    //i. Get the approved text.
-    const adBreakText = this.getApprovedAdBreakText(AdBreakID);
+    //I. Get the approved text.
+    const adBreakRow = this.getApprovedAdBreakText(AdBreakID);
+    if (!adBreakRow) return null;
+    const adBreakText = adBreakRow.AdBreakText;
 
-    //ii. Convert the ad break text to audio.
-    const adBreakAudio = await generateAudio(adBreakText);
-    return adBreakAudio;
+    //II. Create a file for the audio
+    const fileName = `adbreak_${AdBreakID}.mp3`;
 
-    //iii. Save the converted ad break audio to database.
-    this.adBreakAudio(AdBreakID, adBreakAudio);
+    //III. Convert the ad break text to audio.
+    await generateSpeech(adBreakText, fileName);
+
+    //IV. Create the fileURL to navigate through the path
+    const fileUrlForFrontend = `/assets/audio/${fileName}`;
+
+    //V. Save the converted ad break audio to database.
+    this.adBreakAudio(AdBreakID, fileUrlForFrontend);
+
+    return fileUrlForFrontend;
   },
-
 
   // 5. Call all ad breaks that has been approved from the database.
   getApprovedAdBreaks: () => {
     const sql = `
             SELECT * FROM AdBreaksTable 
-            WHERE Status = 'approved' ORDER BY AdBreakID DESC
+            WHERE Status = 'approved' ORDER BY AdBreakID ASC
         `;
     return db.prepare(sql).all();
   },

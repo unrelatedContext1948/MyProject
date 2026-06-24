@@ -56,9 +56,14 @@ async function getVideoInfo(url) {
   const info = await yt.getBasicInfo(videoId);
   const basic = info.basic_info;
 
+  let channelName = basic.author.name || basic.author;
+
+  if (channelName.endsWith(" - Topic")) 
+    channelName = channelName.replace(" - Topic", "");
+
   return {
     title: basic.title,
-    channel: basic.author.name || basic.author,
+    channel: channelName,
     duration: getDuration(basic.duration),
     videoURL: url,
   };

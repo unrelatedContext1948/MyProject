@@ -65,7 +65,7 @@ async function adminSubmitAdBreak(event) {
     return;
   }
 
-  alert("Ad Break Text submitted to queue!");
+  alert("Ad Break submitted to queue!");
 
   event.target.reset();
 }

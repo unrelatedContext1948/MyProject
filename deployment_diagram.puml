@@ -1,0 +1,32 @@
+@startuml
+skinparam componentStyle uml2
+skinparam node {
+    BackgroundColor White
+    BorderColor Black
+}
+
+node "Client Machine (Web Browser)" as ClientNode {
+    component "[C10] User Interface" as C10
+    artifact "IFrame API (Client-Script)" as IframeScript
+    
+    C10 --> IframeScript : nutzt
+}
+
+node "Server Machine (Node.js)" as ServerNode {
+    component "[C40] Queue Management" as C40
+    artifact "youtubei.js (Innertube)" as Innertube
+    
+    C40 --> Innertube : nutzt
+}
+
+' Deine Kasten-Darstellung für YouTube!
+node "YouTube Servers" <<external device>> as YouTubeNode {
+    component "YouTube IFrame Service" as YT_Iframe_Service
+    component "YouTube Backend API" as YT_Backend_Service
+}
+
+' Die Kommunikationswege übers Internet
+IframeScript ..> YT_Iframe_Service : HTTPS / Video-Stream
+Innertube ..> YT_Backend_Service : HTTPS / Metadaten-Abruf
+
+@enduml
