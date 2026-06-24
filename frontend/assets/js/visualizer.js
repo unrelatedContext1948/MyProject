@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("adBreakTitle").textContent =
         adBreak && adBreak.AdBreakTitle ? adBreak.AdBreakTitle : "";
     document.getElementById("adBreakTextDisplay").textContent =
-        adBreak && adBreak.AdText ? adBreak.AdText : "";
+        adBreak && adBreak.SubmittedBy ? `Submitted By ${adBreak.SubmittedBy}` : "";
 
     if (!audioUrl) {
       resizeCanvas();
