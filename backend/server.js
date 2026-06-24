@@ -40,7 +40,7 @@ masterClock.on("adBreakStart", (adBreak) => {
 
 masterClock.on("adBreakEnd", () => {
     console.log("[Socket] Broadcasting adBreakEnd");
-    io.emit("adBreakEnd");
+    io.emit("adBreakEnd", streamState.getCurrentStream());
 });
 
 io.on("connection", (socket) => {

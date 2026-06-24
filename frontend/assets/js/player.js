@@ -143,8 +143,17 @@ socket.on("adBreakStart", (adBreak) => {
     visualizer.show(adBreak, adBreak ? adBreak.AdBreakURL : null);
 });
 
-socket.on("adBreakEnd", () => {
+socket.on("adBreakEnd", (streamData) => {
     visualizer.hide();
+    if (streamData && streamData.currentVideo) {
+        showCurrentSong(streamData.currentVideo);
+        mergedQueue = streamData.mergedQueue || mergedQueue;
+        renderQueue();
+        if (player && typeof player.loadVideoById === "function") {
+            const videoId = extractVideoId(streamData.currentVideo.VideoURL);
+            if (videoId) player.loadVideoById(videoId);
+        }
+    }
 });
 
 // ─── UI helpers ──────────────────────────────────────────────────────────────
