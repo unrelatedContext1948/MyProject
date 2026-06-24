@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function setupAudio(audioElement) {
     audioContext = new AudioContext();
+    await audioContext.resume();
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.8;
