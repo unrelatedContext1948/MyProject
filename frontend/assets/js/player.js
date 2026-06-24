@@ -58,9 +58,7 @@ function _onPlayerReady(event) {
 
 function _onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
-        // Tell the server the current video ended; it will advance the index
-        // and broadcast 'videoChanged' to all clients so everyone stays in sync.
-        socket.emit("videoEnded");
+        socket.emit("videoEnded", currentIndex);
     }
 }
 

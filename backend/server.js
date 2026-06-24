@@ -49,9 +49,16 @@ io.on("connection", (socket) => {
     // Send full stream state to the newly joined client
     socket.emit("currentStream", streamState.getCurrentStream());
 
-    // When a client's video ends, advance the stream for everyone
-    socket.on("videoEnded", () => {
-        console.log("videoEnded received from:", socket.id);
+    // When a client's video ends, advance the stream for everyone.
+    // The client sends the index it thinks is current so duplicate events
+    // from other open tabs are ignored.
+    socket.on("videoEnded", (reportedIndex) => {
+        console.log("videoEnded received from:", socket.id, "index:", reportedIndex);
+        const current = streamState.getCurrentStream();
+        if (reportedIndex !== current.currentIndex) {
+            console.log("videoEnded ignored – already advanced to index", current.currentIndex);
+            return;
+        }
         const nextStream = streamState.moveToNextVideo();
         io.emit("videoChanged", nextStream);
     });
