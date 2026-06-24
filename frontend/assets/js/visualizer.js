@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
     audioElement.src = audioUrl;
     resizeCanvas();
     await setupAudio(audioElement);
-    audioElement.play();
+    audioElement.play().catch(() => {});
     drawRing();
   }
 

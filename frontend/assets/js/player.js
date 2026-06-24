@@ -38,6 +38,7 @@ function _createPlayer(videoId, startSeconds) {
         videoId,
         playerVars: {
             autoplay: 1,
+            mute: 1,
             controls: 1,
             start: Math.floor(startSeconds),
         },
