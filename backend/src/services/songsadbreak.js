@@ -27,7 +27,7 @@ const songsAdbreak = {
     },
 
     rejectAdBreak: (id) => {
-        return db.prepare(`UPDATE AdBreaksTable SET Status = 'rejected' WHERE AdBreakID = ?`).run(id);
+        return db.prepare(`DELETE FROM AdBreaksTable WHERE AdBreakID = ?`).run(id);
     },
 };
 

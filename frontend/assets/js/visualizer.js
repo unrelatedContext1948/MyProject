@@ -7,6 +7,40 @@ document.addEventListener("DOMContentLoaded", function () {
   let source = null;
   let animationId = null;
 
+
+  const LABELS = [
+    { name: "TREBLE",   angle: -Math.PI / 2 },
+    { name: "HIGH-MID", angle: -Math.PI / 4 },
+    { name: "MID",      angle: 0 },
+    { name: "LOW-MID",  angle: Math.PI / 4 },
+    { name: "BASS",     angle: Math.PI / 2 },
+    { name: "SUB-BASS", angle: (3 * Math.PI) / 4 },
+    { name: "LOW",      angle: Math.PI },
+    { name: "MID-HIGH", angle: -(3 * Math.PI) / 4 },
+  ];
+
+  function drawRingIdle() {
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const ringRadius = Math.min(cx, cy) * 0.45;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = "#00ff88";
+      ctx.lineWidth = 3;
+      ctx.shadowColor = "#00ff88";
+      ctx.shadowBlur = 20;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      animationId = requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+
   async function setupAudio(audioElement) {
     if (!audioContext) {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -187,10 +221,23 @@ document.addEventListener("DOMContentLoaded", function () {
   async function show(adBreak, audioUrl) {
     const adBreakOverlay = document.getElementById("adBreakOverlay");
     adBreakOverlay.classList.remove("hidden");
+
+    document.getElementById("adBreakTitle").textContent =
+        adBreak && adBreak.AdBreakTitle ? adBreak.AdBreakTitle : "";
+    document.getElementById("adBreakTextDisplay").textContent =
+        adBreak && adBreak.SubmittedBy ? `Submitted By ${adBreak.SubmittedBy}` : "";
+
+    if (!audioUrl) {
+      resizeCanvas();
+      drawRingIdle();
+      return;
+    }
+
     const audioElement = document.getElementById("adAudio");
     audioElement.src = audioUrl;
     resizeCanvas();
     await setupAudio(audioElement);
+
     audioElement.play().catch((err) => console.warn("[Visualizer] Audio play error:", err));
     drawAuraRing();
     audioElement.onended = () => hide();

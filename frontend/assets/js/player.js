@@ -38,6 +38,7 @@ function _createPlayer(videoId, startSeconds) {
         videoId,
         playerVars: {
             autoplay: 1,
+            mute: 1,
             controls: 1,
             start: Math.floor(startSeconds),
         },
@@ -58,9 +59,7 @@ function _onPlayerReady(event) {
 
 function _onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
-        // Tell the server the current video ended; it will advance the index
-        // and broadcast 'videoChanged' to all clients so everyone stays in sync.
-        socket.emit("videoEnded");
+        socket.emit("videoEnded", currentIndex);
     }
 }
 
@@ -145,8 +144,17 @@ socket.on("adBreakStart", (adBreak) => {
     visualizer.show(adBreak, adBreak ? adBreak.AdBreakURL : null);
 });
 
-socket.on("adBreakEnd", () => {
+socket.on("adBreakEnd", (streamData) => {
     visualizer.hide();
+    if (streamData && streamData.currentVideo) {
+        showCurrentSong(streamData.currentVideo);
+        mergedQueue = streamData.mergedQueue || mergedQueue;
+        renderQueue();
+        if (player && typeof player.loadVideoById === "function") {
+            const videoId = extractVideoId(streamData.currentVideo.VideoURL);
+            if (videoId) player.loadVideoById(videoId);
+        }
+    }
 });
 
 // ─── UI helpers ──────────────────────────────────────────────────────────────
