@@ -43,7 +43,12 @@ estimates the next break will fire based on cumulative song durations.
 function buildMergedQueue(nextAdBreakIn) {
     if (queue.length === 0) loadQueue();
 
-    const upcoming = queue.slice(currentIndex + 1, currentIndex + 7);
+    const upcoming = [];
+    for (let i = 1; upcoming.length < 6; i++) {
+        const idx = (currentIndex + i) % queue.length;
+        upcoming.push(queue[idx]);
+        if (i >= queue.length) break; // avoid infinite loop if queue empty
+    }
 
     // No ad break scheduled or it's more than an hour away → plain songs list
     if (nextAdBreakIn === null || nextAdBreakIn > 3600) {
