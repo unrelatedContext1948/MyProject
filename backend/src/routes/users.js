@@ -75,7 +75,7 @@ router.post("/", authenticate, authorize("admin"), async (req, res) => {
 
 
     // Role validation
-    if(role !== "admin" && role !== "authorized_user"){
+    if(role !== "admin" && role !== "user"){
          return res.status(400).json({
             message: "Role must be admin or authorized_user"
         });

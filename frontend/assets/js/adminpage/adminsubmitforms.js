@@ -13,7 +13,7 @@ async function adminSubmitTrack(event) {
   event.preventDefault(); //stop the form to refresh the page and go back to the top
 
   const url = document.getElementById("adminTrackURL").value.trim(); // trim to delete whitespaces
-  const startTIme = document.getElementById("adminStartTime").value.trim();
+  const startTime = document.getElementById("adminStartTime").value.trim();
   const endTime = document.getElementById("adminEndTime").value.trim();
   const token = localStorage.getItem("token");
   const res = await fetch("/api/queue/submit", {

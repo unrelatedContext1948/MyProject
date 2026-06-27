@@ -12,6 +12,9 @@
 
   for better visualization, go to admin.html right click then open with live server (not the localhost3000)
 */
+const socket = io();
+
+
 const PENDING_AD_BREAKS_LIMIT = 3;
 let pendingVisible = PENDING_AD_BREAKS_LIMIT;
 let pendingItems = [];
@@ -19,10 +22,10 @@ let pendingItems = [];
 //when the page loads, it will automatically shows the pending list
 document.addEventListener("DOMContentLoaded", function () {
   renderPendingAdBreaks();
+  socket.on("newAdBreak", renderPendingAdBreaks); // a new ad break was submitted
 });
 
 //To show all pending ad breaks, and for each ad break has an approve or reject button
-
 //find the container on the admin page.html
 async function renderPendingAdBreaks() {
   const token = localStorage.getItem("token");
@@ -64,7 +67,7 @@ async function renderPendingAdBreaks() {
     return;
   }
 
-  //only show pending items up to pendingVisible
+  //only show pending items up to pendingVisible (=3 Elements)
   const visiblePendingItems = pendingItems.slice(0, pendingVisible);
 
   //how many pending items are still hidden
@@ -113,10 +116,6 @@ async function renderPendingAdBreaks() {
 
 //show more adbreaks function
 function showMorePendingAdBreaks() {
-  const pendingItems = PENDING_AD_BREAKS.filter(function (element) {
-    return element.status === "pending";
-  });
-
   pendingVisible = pendingItems.length;
   renderPendingAdBreaks();
 }

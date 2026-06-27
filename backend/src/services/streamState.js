@@ -57,10 +57,14 @@ function parseDuration(duration) {
 function buildMergedQueue(nextAdBreakIn) {
   if (queue.length === 0) loadQueue();
 
-  // takes the 6 songs of the queue
-  const upcoming = queue.slice(currentIndex + 1, currentIndex + 7);
+  // keeps the queue on 6 items
+  const upcoming = [];
+  for (let i = 1; upcoming.length < 7  && queue.length > 0; i++) {
+    const idx = (currentIndex + i) % queue.length;
+    upcoming.push(queue[idx]);
+  }
 
-  // No ad break scheduled or it's more than an hour away → plain songs list
+  // No ad break scheduled or the 15 minutes intervall is overwhelmed
   if (nextAdBreakIn === null || nextAdBreakIn > 900) {
     return upcoming.map((s) => ({ ...s, type: "song" }));
   }

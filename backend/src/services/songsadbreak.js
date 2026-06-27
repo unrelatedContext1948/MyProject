@@ -35,8 +35,7 @@ const songsAdbreak = {
   // The ad break text that has been denied by the admin will be deleted from the database.
   rejectAdBreak: (adBreakId) => {
     const sql = `
-            UPDATE AdBreaksTable 
-            SET Status = 'rejected' 
+            DELETE FROM AdBreaksTable
             WHERE AdBreakID = ?
         `;
     return db.prepare(sql).run(adBreakId);

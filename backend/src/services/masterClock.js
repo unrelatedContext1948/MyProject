@@ -12,6 +12,7 @@ class MasterClock extends EventEmitter {
         this.adTimer = null;
         this.streamStartTime = null;
         this.nextAdBreakTime = null;
+        this.currentAdBreak = null;
     }
 
     start() {
@@ -47,6 +48,7 @@ class MasterClock extends EventEmitter {
 
     endAdBreak() {
         this.isAdBreaking = false;
+        this.currentAdBreak = null;
         console.log('[MasterClock] Ad break ended.');
         this.emit('adBreakEnd');
         this.scheduleNextAdBreak();
