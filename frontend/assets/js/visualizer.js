@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
     draw();
   }
 
-  async function show(adBreak, audioUrl) {
+  async function show(adBreak) {
     const adBreakOverlay = document.getElementById("adBreakOverlay");
     adBreakOverlay.classList.remove("hidden");
 
@@ -227,22 +227,39 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("adBreakTextDisplay").textContent =
         adBreak && adBreak.SubmittedBy ? `Submitted By ${adBreak.SubmittedBy}` : "";
 
-    if (!audioUrl) {
-      resizeCanvas();
-      drawRingIdle();
-      return;
+    resizeCanvas();
+
+    const endAdBreak = () => socket.emit("adBreakOver");
+
+    const tts = window.humanTTS;
+    const text = adBreak && adBreak.AdBreakText;
+
+    if (!tts || !text) {
+        // No TTS available – show idle ring and end after 30 seconds
+        drawRingIdle();
+        setTimeout(endAdBreak, 30_000);
+        return;
     }
 
-    const audioElement = document.getElementById("adAudio");
-    audioElement.src = audioUrl;
-    resizeCanvas();
-    await setupAudio(audioElement);
-    // Notify the server when the ad break audio finishes so it can advance the stream
-    audioElement.onended = () => {
-        socket.emit("adBreakOver");
-    };
-    audioElement.play().catch((err) => console.warn("[Visualizer] Audio play error:", err));
-    drawAuraRing();
+    // Use the TTS analyser node for the ring visualizer
+    // Kick off TTS first so the analyser exists, then start drawing
+    const speakPromise = tts.speak(text)
+        .then(endAdBreak)
+        .catch((err) => {
+            console.warn("[Visualizer] TTS error:", err);
+            setTimeout(endAdBreak, 10_000);
+        });
+
+    // Give TTS a tick to initialise its AudioContext and analyser
+    await new Promise(r => setTimeout(r, 50));
+    analyser = tts.getAnalyser();
+    if (analyser) {
+        drawAuraRing();
+    } else {
+        drawRingIdle();
+    }
+
+    return speakPromise;
   }
 
   function hide() {
@@ -252,18 +269,8 @@ document.addEventListener("DOMContentLoaded", function () {
       cancelAnimationFrame(animationId);
       animationId = null;
     }
-    if (audioContext) {
-      audioContext.close();
-      audioContext = null;
-    }
-    if (analyser) {
-      analyser.disconnect();
-      analyser = null;
-    }
-    if (source) {
-      source.disconnect();
-      source = null;
-    }
+    // analyser belongs to humanTTS – just release the reference, don't disconnect
+    analyser = null;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
