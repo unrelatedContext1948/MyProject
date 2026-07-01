@@ -141,11 +141,13 @@ socket.on("queueUpdated", async () => {
 // ─── Ad break events ─────────────────────────────────────────────────────────
 
 socket.on("adBreakStart", (adBreak) => {
+    if (player && typeof player.mute === "function") player.mute();
     visualizer.show(adBreak, adBreak ? adBreak.AdBreakURL : null);
 });
 
 socket.on("adBreakEnd", (streamData) => {
     visualizer.hide();
+    if (player && typeof player.unMute === "function") player.unMute();
     if (streamData && streamData.currentVideo) {
         showCurrentSong(streamData.currentVideo);
         mergedQueue = streamData.mergedQueue || mergedQueue;

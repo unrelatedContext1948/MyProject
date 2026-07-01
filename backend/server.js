@@ -40,7 +40,12 @@ masterClock.on("adBreakStart", (adBreak) => {
 
 masterClock.on("adBreakEnd", () => {
     console.log("[Socket] Broadcasting adBreakEnd");
-    io.emit("adBreakEnd", streamState.getCurrentStream());
+    const nextStream = streamState.moveToNextVideo();
+    io.emit("adBreakEnd", nextStream);
+    // Also emit videoChanged so clients update the player
+    io.emit("videoChanged", nextStream);
+    // Reset deduplication guard so the next song's videoEnded is accepted
+    lastAdvancedIndex = -1;
 });
 
 // Track which index we have already advanced past so concurrent videoEnded
@@ -58,6 +63,7 @@ io.on("connection", (socket) => {
     // from other open tabs are ignored.
     socket.on("videoEnded", (reportedIndex) => {
         console.log("videoEnded received from:", socket.id, "index:", reportedIndex);
+
         if (reportedIndex === lastAdvancedIndex) {
             console.log("videoEnded ignored – already advanced past index", reportedIndex);
             return;
@@ -67,9 +73,22 @@ io.on("connection", (socket) => {
             console.log("videoEnded ignored – stale index", reportedIndex, "current is", current.currentIndex);
             return;
         }
+
         lastAdvancedIndex = reportedIndex;
-        const nextStream = streamState.moveToNextVideo();
-        io.emit("videoChanged", nextStream);
+
+        if (masterClock.adBreakPending) {
+            // Let the ad break go first; lastAdvancedIndex will be reset in adBreakEnd handler
+            masterClock.triggerAdBreak();
+        } else {
+            const nextStream = streamState.moveToNextVideo();
+            io.emit("videoChanged", nextStream);
+        }
+    });
+
+    // Client signals that the ad break audio has finished playing
+    socket.on("adBreakOver", () => {
+        if (!masterClock.isAdBreaking) return;
+        masterClock.endAdBreak();
     });
 
     socket.on("disconnect", () => {

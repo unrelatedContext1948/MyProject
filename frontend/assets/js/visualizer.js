@@ -237,10 +237,12 @@ document.addEventListener("DOMContentLoaded", function () {
     audioElement.src = audioUrl;
     resizeCanvas();
     await setupAudio(audioElement);
-
+    // Notify the server when the ad break audio finishes so it can advance the stream
+    audioElement.onended = () => {
+        socket.emit("adBreakOver");
+    };
     audioElement.play().catch((err) => console.warn("[Visualizer] Audio play error:", err));
     drawAuraRing();
-    audioElement.onended = () => hide();
   }
 
   function hide() {

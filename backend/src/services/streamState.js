@@ -39,6 +39,9 @@ function parseDuration(duration) {
 Build the 6-item sliding window the frontend shows as "Up Next".
 Inserts an ad-break placeholder at the position where the master clock
 estimates the next break will fire based on cumulative song durations.
+
+nextAdBreakIn is already adjusted for the remaining time of the current song,
+so accumulated durations of upcoming songs are compared directly against it.
 */
 function buildMergedQueue(nextAdBreakIn) {
     if (queue.length === 0) loadQueue();
@@ -76,8 +79,9 @@ function buildMergedQueue(nextAdBreakIn) {
 }
 
 /*
-Full stream state snapshot sent to every client that connects.
-Includes master-clock info so the client knows about ad breaks immediately.
+Full stream state snapshot sent to every client that connects or when
+state changes. Adjusts the ad-break countdown by subtracting the
+remaining time of the current song so queue placement is accurate.
 */
 function getCurrentStream() {
     // Lazy-load to avoid circular dependency issues at module initialisation
@@ -85,12 +89,23 @@ function getCurrentStream() {
     const clockStatus = masterClock.getStatus();
     const currentVideo = getCurrentVideo();
 
+    const elapsedSeconds = Math.floor((Date.now() - videoStartTime) / 1000);
+    const currentDuration = parseDuration(currentVideo?.Duration) || 0;
+    const remainingTime = Math.max(0, currentDuration - elapsedSeconds);
+
+    // Subtract remaining song time so the ad break marker appears at the
+    // correct position relative to upcoming (not current) songs.
+    const adjustedNextAdBreakIn =
+        clockStatus.nextAdBreakIn !== null
+            ? Math.max(0, clockStatus.nextAdBreakIn - remainingTime)
+            : null;
+
     return {
         currentVideo,
         currentIndex,
-        currentTime: Math.floor((Date.now() - videoStartTime) / 1000),
+        currentTime: elapsedSeconds,
         masterClock: clockStatus,
-        mergedQueue: buildMergedQueue(clockStatus.nextAdBreakIn),
+        mergedQueue: buildMergedQueue(adjustedNextAdBreakIn),
     };
 }
 
@@ -98,7 +113,6 @@ function moveToNextVideo() {
     if (queue.length === 0) loadQueue();
 
     currentIndex++;
-    // Loop back to beginning when queue ends
     if (currentIndex >= queue.length) {
         currentIndex = 0;
     }

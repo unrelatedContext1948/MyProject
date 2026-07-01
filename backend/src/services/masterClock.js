@@ -2,9 +2,9 @@
 MasterClock – authoritative server-side timer for the stream.
 
 Responsibilities:
-  - Fire an ad break every 15 minutes
+  - Set adBreakPending = true every 15 minutes
+  - Wait for the current song to finish (videoEnded in server.js triggers the break)
   - Emit 'adBreakStart' (with ad data) and 'adBreakEnd' events
-  - Track stream time and seconds until the next ad break
 
 server.js listens to these events and forwards them to all Socket.IO clients.
 */
@@ -13,12 +13,12 @@ const EventEmitter = require('events');
 const songsAdbreak = require('./songsadbreak');
 
 const AD_BREAK_INTERVAL = 15 * 60 * 1000; // 15 minutes
-const AD_BREAK_DURATION = 30 * 1000;       // 30 seconds
 
 class MasterClock extends EventEmitter {
     constructor() {
         super();
         this.isAdBreaking = false;
+        this.adBreakPending = false;
         this.adTimer = null;
         this.streamStartTime = null;
         this.nextAdBreakTime = null;
@@ -33,30 +33,33 @@ class MasterClock extends EventEmitter {
 
     _scheduleNextAdBreak() {
         this.nextAdBreakTime = Date.now() + AD_BREAK_INTERVAL;
-        this.adTimer = setTimeout(() => this._triggerAdBreak(), AD_BREAK_INTERVAL);
+        this.adTimer = setTimeout(() => {
+            this.adBreakPending = true;
+            console.log('[MasterClock] Ad break pending – waiting for current song to end.');
+        }, AD_BREAK_INTERVAL);
     }
 
-    _triggerAdBreak() {
+    triggerAdBreak() {
         if (this.isAdBreaking) return;
 
         const approved = songsAdbreak.getApprovedAdBreaks();
         if (approved.length === 0) {
-            console.log('[MasterClock] No approved ad breaks available – skipping this break.');
+            console.log('[MasterClock] No approved ad breaks – skipping this break.');
+            this.adBreakPending = false;
             this._scheduleNextAdBreak();
             return;
         }
 
         this.currentAdBreak = approved[Math.floor(Math.random() * approved.length)];
         this.isAdBreaking = true;
+        this.adBreakPending = false;
         this.nextAdBreakTime = null;
 
         console.log('[MasterClock] Ad break starting:', this.currentAdBreak.AdBreakTitle);
         this.emit('adBreakStart', this.currentAdBreak);
-
-        setTimeout(() => this._endAdBreak(), AD_BREAK_DURATION);
     }
 
-    _endAdBreak() {
+    endAdBreak() {
         this.isAdBreaking = false;
         this.currentAdBreak = null;
         console.log('[MasterClock] Ad break ended.');
