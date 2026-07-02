@@ -32,7 +32,6 @@
 
 /*add highlight*/
 .queue-adbreak-first {
-  background-color: #faf8f6;
   border: 1px solid #d7a18a;
   border-left: 3px solid var(--terracotta);
 }
