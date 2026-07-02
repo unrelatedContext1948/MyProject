@@ -30,11 +30,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function draw() {
       analyser.getByteTimeDomainData(dataArray); // get time domain data (waveform)
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // semi-transparent background
+      ctx.fillStyle = "rgb(255, 253, 253)"; // semi-transparent background
       ctx.fillRect(0, 0, canvas.width, canvas.height); // clear canvas
 
       ctx.lineWidth = 2; // set line width for waveform
-      ctx.strokeStyle = "lime"; // set line color for waveform
+      ctx.strokeStyle = "#3a3a38"; // set line color for waveform
       ctx.beginPath(); // start drawing path
 
       const sliceWidth = canvas.width / bufferLength;
