@@ -272,13 +272,16 @@ body {
 
 .form-element {
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .form-title {
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .form-input {
@@ -310,14 +313,57 @@ textarea.form-input {
 .form-hint {
   font-size: 0.75rem;
   color: var(--sage-700);
-  margin-top: 0.25rem;
-  margin-bottom: 0.95rem;
+  margin: 0;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+/*Specific layout for Ad Breaks forms, made to match the YouTube timstamp spacing*/
+/* Specific layout for Ad Break form, made to match YouTube timestamp spacing */
+.adbreak-match-youtube .form-element {
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.adbreak-match-youtube .form-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.adbreak-match-youtube .form-input {
+  display: block;
+  width: 100%;
+}
+
+.adbreak-match-youtube .form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--sage-700);
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.adbreak-match-youtube .btn-submit {
+  margin-top: 1rem;
+}
+
+.adbreak-match-youtube textarea.form-input {
+  display: block;
+  margin-bottom: 0 !important;
+}
+
+.adbreak-match-youtube .form-hint {
+  margin: 0.25rem 0 0 0 !important;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--sage-700);
+  line-height: 1.3;
 }
 
 /*element for forms submission button except authform */
@@ -331,6 +377,7 @@ textarea.form-input {
   cursor: pointer;
   border: none;
   transition: background-color 0.2s;
+  margin-top: 0;
 }
 
 .btn-submit.primary {
@@ -437,4 +484,8 @@ textarea.form-input {
   .modal-content {
     padding: 1rem;
   }
+}
+
+#submitAdBreakForm textarea.form-input + .form-hint {
+  margin-top: -0.1rem !important;
 }

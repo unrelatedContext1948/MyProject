@@ -93,12 +93,23 @@
             </div>
             <form id="adminSubmitAdBreakForm">
               <div class="form-element">
+                <label class="form-title">Ad Break Title</label>
+                <input
+                  type="text"
+                  id="adBreakTitle"
+                  class="form-input"
+                  placeholder="e.g. New Publication, Project Update, ..."
+                  required
+                  maxlength="30"
+                />
+              </div>
+              <div class="form-element">
                 <label class="form-title">Ad Break Text</label>
                 <textarea
                   id="adminAdText"
                   class="form-input"
-                  rows="5"
-                  placeholder="Enter text for AI-Voiced Ad break between 300 and 500 characters"
+                  rows="1"
+                  placeholder="Enter text between 300 and 500 characters"
                   minlength="300"
                   maxlength="500"
                   required
