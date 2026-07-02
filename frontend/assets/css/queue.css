@@ -34,7 +34,7 @@
 .queue-adbreak-first {
   background-color: #faf8f6;
   border: 1px solid #d7a18a;
-  border-left: 3px solid var(--terracota-light);
+  border-left: 3px solid var(--terracotta);
 }
 .queue-song-first {
   border-left: 3px solid var(--sage-600);
