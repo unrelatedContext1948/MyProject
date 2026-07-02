@@ -211,7 +211,17 @@
             <h3>Request Ad Break <h3>
           </div>
             <form id="submitAdBreakForm">
-              <div class="form-element"></div>
+              <div class="form-element">
+              <label class="form-title">Ad Break Title</label>
+              <input 
+              type ="text" 
+              id ="adBreakTitle"
+              class="form-input"
+              placeholder ="e.g. New Publication, Project Update, ..."
+              required 
+              maxlength ="30" />
+              </div>
+              <div class ="form-element">
               <label class="form-title">Ad Break Text</label>
               <textarea
               id="adBreakText"
@@ -222,6 +232,7 @@
               maxlength="500"
               required
               ></textarea>
+              </div>
               <p class="form-hint">Your text will be reviewed by admin before becoming an audio ad break.</p>
             <button type="submit" class="btn-submit ad">Submit for Approval</button>
             </form>
