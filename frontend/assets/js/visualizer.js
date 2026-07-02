@@ -9,11 +9,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Connect <audio> element to Web Audio API analyser (only once)
   async function setupAudio(audioElement) {
-    audioContext = new AudioContext(); // audio source
-    analyser = audioContext.createAnalyser(); // analyser node
-    source = audioContext.createMediaElementSource(audioElement); // audio element source
-    source.connect(analyser); // connect source to analyser
-    analyser.connect(audioContext.destination); // connect analyser to output
+    if (source === null) {
+      audioContext = new AudioContext(); // audio source
+      source = audioContext.createMediaElementSource(audioElement); // audio element source
+      analyser = audioContext.createAnalyser(); // analyser node
+      source.connect(analyser); // connect source to analyser
+      analyser.connect(audioContext.destination); // connect analyser to output
+    }
     analyser.fftSize = 32768; // set Fast Fourier Transform (fft) size for better resolution
   }
 
@@ -76,7 +78,9 @@ document.addEventListener("DOMContentLoaded", function () {
     audioElement.onerror = () => {
       socket.emit("adBreakOver");
     };
-    await setupAudio(audioElement); // set up audio context and analyser
+    if (audioElement) {
+      await setupAudio(audioElement); // set up audio context and analyser
+    }
     audioElement.play(); // start playing audio
     drawWaveform(); // start drawing waveform
   }
@@ -88,17 +92,10 @@ document.addEventListener("DOMContentLoaded", function () {
       cancelAnimationFrame(animationId); // stop animation
       animationId = null;
     }
-    if (audioContext) {
-      audioContext.close(); // close audio context
-      audioContext = null;
-    }
-    if (analyser) {
-      analyser.disconnect(); // disconnect analyser
-      analyser = null;
-    }
-    if (source) {
-      source.disconnect(); // disconnect source
-      source = null;
+    const audioElement = document.getElementById("adAudio");
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0; // Spult zum Anfang zurück
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
   }

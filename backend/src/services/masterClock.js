@@ -1,4 +1,4 @@
-// I have deleted the restriction of 30 seconds ad brea
+// I have deleted the restriction of 30 seconds ad break
 
 const EventEmitter = require("events");
 const songsAdbreak = require("./songsadbreak");
@@ -44,7 +44,7 @@ class MasterClock extends EventEmitter {
 
     const adBreak = approved[0];
     this.isAdBreaking = true;
-    this.scheduleNextAdBreak();
+    this.scheduleNextAdBreak();  
 
     console.log("[MasterClock] Ad break starting:");
     this.emit("adBreakStart", adBreak);
