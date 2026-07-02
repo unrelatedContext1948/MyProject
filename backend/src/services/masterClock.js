@@ -1,62 +1,62 @@
+// I have deleted the restriction of 30 seconds ad brea
 
-const EventEmitter = require('events');
-const songsAdbreak = require('./songsadbreak');
+const EventEmitter = require("events");
+const songsAdbreak = require("./songsadbreak");
 
-const AD_BREAK_INTERVAL = 15 * 60 * 1000; // 15 minutes
-const AD_BREAK_DURATION = 30 * 1000;       // 30 seconds
+const AD_BREAK_INTERVAL = 60 * 1000; // 15 minutes
 
 class MasterClock extends EventEmitter {
-    constructor() {
-        super();
-        this.isAdBreaking = false;
-        this.adTimer = null;
-        this.streamStartTime = null;
-        this.nextAdBreakTime = null;
-        this.currentAdBreak = null;
+  constructor() {
+    super();
+    this.isAdBreaking = false;
+    this.streamStartTime = null;
+    this.nextAdBreakTime = null;
+    this.currentAdBreak = null;
+  }
+
+  start() {
+    this.streamStartTime = Date.now();
+    this.scheduleNextAdBreak();
+    console.log("[MasterClock] Started – next ad break in 15 minutes.");
+  }
+
+  scheduleNextAdBreak() {
+    this.nextAdBreakTime = Date.now() + AD_BREAK_INTERVAL;
+    setTimeout(() => {
+      this.adBreakPending = true;
+      console.log(
+        "[MasterClock] Ad break pending – waiting for current song to end.",
+      );
+    }, AD_BREAK_INTERVAL);
+  }
+  //fira
+  triggerAdBreak() {
+    if (this.isAdBreaking) return;
+
+    const approved = songsAdbreak.getApprovedAdBreaks();
+    if (approved.length === 0) {
+      console.log(
+        "[MasterClock] No approved ad breaks available – skipping this break.",
+      );
+      this.scheduleNextAdBreak();
+      return;
     }
 
-    start() {
-        this.streamStartTime = Date.now();
-        this.scheduleNextAdBreak();
-        console.log('[MasterClock] Started – next ad break in 15 minutes.');
-    }
+    const adBreak = approved[0];
+    this.isAdBreaking = true;
+    this.nextAdBreakTime = null;
 
-    scheduleNextAdBreak() {
-        this.nextAdBreakTime = Date.now() + AD_BREAK_INTERVAL;
-        this.adTimer = setTimeout(() => this.triggerAdBreak(), AD_BREAK_INTERVAL);
-    }
+    console.log("[MasterClock] Ad break starting:");
+    this.emit("adBreakStart", adBreak);
+  }
 
-    triggerAdBreak() {
-        if (this.isAdBreaking) return;
-
-        const approved = songsAdbreak.getApprovedAdBreaks();
-        if (approved.length === 0) {
-            console.log('[MasterClock] No approved ad breaks available – skipping this break.');
-            this.scheduleNextAdBreak();
-            return;
-        }
-
-        const adBreak = approved[0];
-        this.isAdBreaking = true;
-        this.nextAdBreakTime = null;
-
-        console.log('[MasterClock] Ad break starting:');
-        this.emit('adBreakStart', adBreak);
-
-        setTimeout(() => this.endAdBreak(), AD_BREAK_DURATION);
-    }
-
-    endAdBreak() {
-        this.isAdBreaking = false;
-        this.currentAdBreak = null;
-        console.log('[MasterClock] Ad break ended.');
-        this.emit('adBreakEnd');
-        this.scheduleNextAdBreak();
-    }
-    
-    stop() {
-        if (this.adTimer) clearTimeout(this.adTimer);
-    }
+  endAdBreak() {
+    this.isAdBreaking = false;
+    this.currentAdBreak = null;
+    console.log("[MasterClock] Ad break ended.");
+    this.emit("adBreakEnd");
+    this.scheduleNextAdBreak();
+  }
 }
 
 // Singleton – the whole app shares one clock.

@@ -62,8 +62,20 @@ document.addEventListener("DOMContentLoaded", function () {
   async function show(adBreak, audioUrl) {
     const adBreakOverlay = document.getElementById("adBreakOverlay");
     adBreakOverlay.classList.remove("hidden");
+
+    document.getElementById("nowPlayingTitle").textContent = "Ad Break";
+    document.getElementById("nowPlayingSubmittedBy").textContent =
+      `Submitted by: ${adBreak.SubmittedBy}`;
+
     const audioElement = document.getElementById("adAudio");
     audioElement.src = audioUrl; //create audio element with provided URL
+    // Ensures that the visualizer disappear after the audio ends and check if the audio was disconnected and does not have any errors
+    audioElement.onended = () => {
+      socket.emit("adBreakOver");
+    };
+    audioElement.onerror = () => {
+      socket.emit("adBreakOver");
+    };
     await setupAudio(audioElement); // set up audio context and analyser
     audioElement.play(); // start playing audio
     drawWaveform(); // start drawing waveform
@@ -92,5 +104,4 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   window.visualizer = { show, hide };
-  
 });

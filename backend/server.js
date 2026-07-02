@@ -47,9 +47,11 @@ masterClock.on("adBreakStart", (adBreak) => {
 
 masterClock.on("adBreakEnd", () => {
   console.log("[Socket] Broadcasting adBreakEnd");
-  io.emit("adBreakEnd");
+  masterClock.adBreakPending = false;
+  const nextStream = streamState.moveToNextVideo();
+  io.emit("adBreakEnd", nextStream);
+  io.emit("videoChanged", nextStream);
 });
-
 
 //  Problem: Too many videoEnded events at the same time from differnt clients
 //  Solution: We need to first check if the reportedIndex equals the currentIndex
@@ -80,7 +82,7 @@ io.on("connection", (socket) => {
       return;
     }
     // second check: is the playing song actual?
-    const current = streamState.getCurrentStream(); 
+    const current = streamState.getCurrentStream();
     if (reportedIndex !== current.currentIndex) {
       console.log(
         "videoEnded ignored – stte index",
@@ -90,9 +92,19 @@ io.on("connection", (socket) => {
       );
       return;
     }
-    lastIndexToAppear = reportedIndex;
-    const nextStream = streamState.moveToNextVideo();
-    io.emit("videoChanged", nextStream);
+    nextIndexToAppear = reportedIndex;
+    // if the ad break is pending, trigger it; otherwise, move to the next video in the queue
+    if (masterClock.adBreakPending) {
+      masterClock.triggerAdBreak();
+    } else {
+      const nextStream = streamState.moveToNextVideo();
+      io.emit("videoChanged", nextStream);
+    }
+  });
+
+  socket.on("adBreakOver", () => {
+    if (!masterClock.isAdBreaking) return;
+    masterClock.endAdBreak();
   });
 
   socket.on("disconnect", () => {

@@ -59,13 +59,13 @@ function buildMergedQueue(nextAdBreakIn) {
 
   // keeps the queue on 6 items
   const upcoming = [];
-  for (let i = 1; upcoming.length < 7  && queue.length > 0; i++) {
+  for (let i = 1; upcoming.length < 7 && queue.length > 0; i++) {
     const idx = (currentIndex + i) % queue.length;
     upcoming.push(queue[idx]);
   }
 
   // No ad break scheduled or the 15 minutes intervall is overwhelmed
-  if (nextAdBreakIn === null || nextAdBreakIn > 900) {
+  if (nextAdBreakIn === null || nextAdBreakIn > 3600) {
     return upcoming.map((s) => ({ ...s, type: "song" }));
   }
 
@@ -74,11 +74,12 @@ function buildMergedQueue(nextAdBreakIn) {
 
   // calculated time accumlated for each song and insert it at the index shere the specified time threshold is (after 15mins)
   for (let i = 0; i < upcoming.length; i++) {
+    const videoDuration = parseDuration(upcoming[i].Duration);
     if (accumulated >= nextAdBreakIn) {
       insertAt = i;
       break;
     }
-    accumulated += parseDuration(upcoming[i].Duration);
+    accumulated += videoDuration;
   }
 
   // insert the ad break at the calculated index
@@ -105,12 +106,18 @@ function getCurrentStream() {
   const nextAdBreakIn = masterClock.nextAdBreakTime
     ? Math.max(0, Math.floor((masterClock.nextAdBreakTime - Date.now()) / 1000))
     : null;
+  const elapsedSeconds = Math.floor((Date.now() - videoStartTime) / 1000);
+  const currentDuration = parseDuration(currentVideo?.Duration) || 0;
+  const remainingTime = Math.max(0, currentDuration - elapsedSeconds);
+
+  const adjustedNextAdBreakIn =
+    nextAdBreakIn !== null ? Math.max(0, nextAdBreakIn - remainingTime) : null;
 
   return {
     currentVideo,
     currentIndex,
     currentTime: Math.floor((Date.now() - videoStartTime) / 1000),
-    mergedQueue: buildMergedQueue(nextAdBreakIn),
+    mergedQueue: buildMergedQueue(adjustedNextAdBreakIn),
   };
 }
 
