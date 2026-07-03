@@ -26,7 +26,7 @@ async function generateSpeech(adBreakText, audioFile) {
         return adBreakAudio;
         
     } catch (error) {
-        console.error("Fehler bei der Audio-Generierung:", error);
+        console.error("Audio generation has failed:", error);
         throw error;
     }
 }

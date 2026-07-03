@@ -93,11 +93,5 @@ router.get("/generateAudio", async (req, res) => {
     message: " Ad break audio is successfully generated.",
   });
 });
-//-----------------------------------------------------//
 
-// 8. Call all ad breaks that has been approved from the database.
-router.get("/adBreaksToQueue", (req, res) => {
-  const adBreaks = songsAdBreak.getAdBreaksToQueue();
-  res.json(adBreaks);
-});
 module.exports = router;

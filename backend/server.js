@@ -93,8 +93,8 @@ io.on("connection", (socket) => {
       return;
     }
     nextIndexToAppear = reportedIndex;
-    // if the ad break is pending, trigger it; otherwise, move to the next video in the queue
-    if (masterClock.adBreakPending) {
+    const currentStream = streamState.getCurrentStream();
+    if (currentStream.mergedQueue[0] && currentStream.mergedQueue[0].type === "adbreak") {
       masterClock.triggerAdBreak();
     } else {
       const nextStream = streamState.moveToNextVideo();
