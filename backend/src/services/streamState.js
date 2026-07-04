@@ -75,8 +75,7 @@ function buildMergedQueue(nextAdBreakIn) {
   // calculated time accumlated for each song and insert it at the index shere the specified time threshold is (after 15mins)
   for (let i = 0; i < upcoming.length; i++) {
     const videoDuration = parseDuration(upcoming[i].Duration);
-    if (accumulated + videoDuration 
-      >= nextAdBreakIn) {
+    if (accumulated >= nextAdBreakIn) {
       insertAt = i;
       break;
     }
