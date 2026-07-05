@@ -14,7 +14,6 @@
 */
 const socket = io();
 
-
 const PENDING_AD_BREAKS_LIMIT = 3;
 let pendingVisible = PENDING_AD_BREAKS_LIMIT;
 let pendingItems = [];
@@ -22,15 +21,11 @@ let pendingItems = [];
 //when the page loads, it will automatically shows the pending list
 document.addEventListener("DOMContentLoaded", function () {
   renderPendingAdBreaks();
-  //socket.on("newAdBreak", renderPendingAdBreaks); // a new ad break was submitted
-  
-//-------------------------------------------------------------------------------------//
   //fira: automatically refresh the pending list when a new ad break was submitted.
   socket.on("newAdBreak", function () {
     console.log("A new ad break was submitted. Refreshing the pending list...");
     renderPendingAdBreaks();
   });
-//-------------------------------------------------------------------------------------//
 });
 
 //To show all pending ad breaks, and for each ad break has an approve or reject button
