@@ -46,17 +46,18 @@ submitAdBreakForm.addEventListener("submit", adminSubmitAdBreak);
 async function adminSubmitAdBreak(event) {
   event.preventDefault();
 
+  const title = document.getElementById("adBreakTitle").value.trim();
   const text = document.getElementById("adminAdText").value.trim();
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("username");
   const status = localStorage.getItem("status");
-  const res = await fetch("/api/adbreak/submitAdText", {
+  const res = await fetch("/api/adbreak/submitAdBreak", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ username, adBreakText: text }),
+    body: JSON.stringify({ adBreakTitle: title, username, adBreakText: text, status }),
   });
 
   if (!res.ok) {

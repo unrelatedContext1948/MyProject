@@ -3,12 +3,12 @@ const generateSpeech = require("./tts");
 
 const songsAdbreak = {
   // 1. Add ad break text to the database.
-  addAdBreak: (username, adBreakText, status) => {
+  addAdBreak: (adBreakTitle, username, adBreakText, status) => {
     const sql = `
             INSERT INTO AdBreaksTable (AdBreakTitle, SubmittedBy, AdBreakText, AdBreakURL, Status) 
             VALUES (?, ?, ?, ?, ?)
         `;
-    return db.prepare(sql).run("Ad Break", username, adBreakText, "", status);
+    return db.prepare(sql).run(adBreakTitle, username, adBreakText, "", status);
   },
 
   // 2. Display pending ad breaks at the admin dashboard.
@@ -70,7 +70,7 @@ const songsAdbreak = {
     const adBreakText = adBreakRow.AdBreakText;
 
     //II. Create a file for the audio
-    const fileName = `adbreak_${AdBreakID}.mp3`;
+    const fileName = `adbreak_${AdBreakID}.mp3`; 
 
     //III. Convert the ad break text to audio.
     await generateSpeech(adBreakText, fileName);
