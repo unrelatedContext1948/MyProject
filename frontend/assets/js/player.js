@@ -11,6 +11,7 @@ let pendingStream = null;
 let ytApiReady = false;
 let wasPlaying = false;
 let currentVideo = null;
+let videoTimeout = null;
 
 // This function is called by the YouTube IFrame API when it's ready
 function onYouTubeIframeAPIReady() {
@@ -56,11 +57,22 @@ function onPlayerReady() {
 // Called whenever the player state changes (playing, paused, ended, etc.)
 function onPlayerStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING) {
-    wasPlaying = true; // Video läuft wirklich
+    wasPlaying = true;
+    const duration = player.getDuration();
+    if (duration > 0) {
+      clearTimeout(videoTimeout);
+      videoTimeout = setTimeout(
+        () => {
+          socket.emit("videoEnded", currentIndex);
+        },
+        (duration + 5) * 1000,
+      );
+    }
   }
   // YT.PlayerState.ENDED === 0 — fires when the current video finishes
   if (event.data === YT.PlayerState.ENDED && wasPlaying) {
     wasPlaying = false;
+    clearTimeout(videoTimeout);
     socket.emit("videoEnded", currentIndex);
   }
 }
@@ -104,9 +116,15 @@ socket.on("adBreakStart", (adBreak) => {
   visualizer.show(adBreak, adBreak.AdBreakURL);
 });
 
-socket.on("adBreakEnd", () => {
+socket.on("adBreakEnd", (stream) => {
   if (player) player.unMute();
   visualizer.hide();
+
+  currentVideo = stream.currentVideo;
+  currentIndex = stream.currentIndex;
+  mergedQueue = stream.mergedQueue;
+  showCurrentSong();
+  renderQueue();
 });
 
 // ─── UI helpers ──────────────────────────────────────────────────────────────
