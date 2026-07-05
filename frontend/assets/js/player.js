@@ -33,6 +33,7 @@ function createYouTubePlayer(stream) {
       autoplay: 1, //  player autoplay on load
       controls: 0, //  YouTube controls removed
       mute: 1,
+      disablekb: 1, // disables keyboard controls on player
       start: Math.floor(stream.currentTime),
     },
     events: {
