@@ -43,9 +43,11 @@ masterClock.on("adBreakEnd", () => {
     io.emit("adBreakEnd", streamState.getCurrentStream());
 });
 
-// Track which index we have already advanced past so concurrent videoEnded
-// events from multiple tabs for the same index are all rejected after the first.
-let lastAdvancedIndex = -1;
+// Whether the currently playing index has already triggered an advance, so
+// concurrent videoEnded events from multiple tabs for the same play are all
+// rejected after the first. Reset on every advance since the queue loops and
+// the same index can come around again for a brand-new play.
+let hasAdvancedCurrentVideo = false;
 
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -58,17 +60,18 @@ io.on("connection", (socket) => {
     // from other open tabs are ignored.
     socket.on("videoEnded", (reportedIndex) => {
         console.log("videoEnded received from:", socket.id, "index:", reportedIndex);
-        if (reportedIndex === lastAdvancedIndex) {
-            console.log("videoEnded ignored – already advanced past index", reportedIndex);
-            return;
-        }
         const current = streamState.getCurrentStream();
         if (reportedIndex !== current.currentIndex) {
             console.log("videoEnded ignored – stale index", reportedIndex, "current is", current.currentIndex);
             return;
         }
-        lastAdvancedIndex = reportedIndex;
+        if (hasAdvancedCurrentVideo) {
+            console.log("videoEnded ignored – already advanced past index", reportedIndex);
+            return;
+        }
+        hasAdvancedCurrentVideo = true;
         const nextStream = streamState.moveToNextVideo();
+        hasAdvancedCurrentVideo = false;
         io.emit("videoChanged", nextStream);
     });
 
