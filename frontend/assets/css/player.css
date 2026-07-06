@@ -64,6 +64,49 @@
   color: var(--sage-700);
 }
 
+/* Shared Timeline / Progress Control */
+.progress-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.progress-time {
+  min-width: 2.5rem;
+  font-size: 0.875rem;
+  color: var(--sage-700);
+}
+
+.progress-slider {
+  flex: 1;
+  height: 8px;
+  border-radius: 9999px;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--sage-600);
+  cursor: pointer;
+}
+
+.progress-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--sage-600);
+  cursor: pointer;
+}
+
 /* Volume Control */
 .volume-control {
   display: flex;

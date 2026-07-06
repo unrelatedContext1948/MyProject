@@ -107,6 +107,25 @@ function moveToNextVideo() {
     return getCurrentStream();
 }
 
+/*
+Reposition the master clock inside the currently playing video (e.g. a user
+dragged the timeline slider). Keeps currentIndex untouched – only the
+elapsed-time baseline changes – and clamps to the video's known duration so a
+stray client can't push everyone's stream out of bounds.
+*/
+function seekTo(newTimeSeconds) {
+    const video = getCurrentVideo();
+    if (!video) return getCurrentStream();
+
+    const duration = parseDuration(video.Duration);
+    let clamped = Math.max(0, newTimeSeconds);
+    if (duration > 0) clamped = Math.min(clamped, duration);
+
+    videoStartTime = Date.now() - clamped * 1000;
+
+    return getCurrentStream();
+}
+
 function refreshQueue() {
     loadQueue();
     return queue;
@@ -117,5 +136,6 @@ module.exports = {
     getCurrentVideo,
     getCurrentStream,
     moveToNextVideo,
+    seekTo,
     refreshQueue,
 };

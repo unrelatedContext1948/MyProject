@@ -6,6 +6,8 @@ Socket.IO is used for:
   2. Broadcasting queue changes (new submission)
   3. Notifying all clients when the video changes (videoEnded → videoChanged)
   4. Forwarding master-clock ad-break events (adBreakStart / adBreakEnd)
+  5. Repositioning the shared timeline (seek → videoSeeked)
+  6. Forcing a full resync for a client whose player froze (requestSync)
 */
 
 const app = require("./src/app");
@@ -73,6 +75,27 @@ io.on("connection", (socket) => {
         const nextStream = streamState.moveToNextVideo();
         hasAdvancedCurrentVideo = false;
         io.emit("videoChanged", nextStream);
+    });
+
+    // A client dragged the timeline slider – recompute the master clock's
+    // elapsed-time baseline and broadcast the new position to everyone so the
+    // whole shared stream jumps together instead of just the sender.
+    socket.on("seek", (newTime) => {
+        if (typeof newTime !== "number" || !Number.isFinite(newTime) || newTime < 0) {
+            console.log("seek ignored – invalid time", newTime);
+            return;
+        }
+        console.log("seek received from:", socket.id, "time:", newTime);
+        const nextStream = streamState.seekTo(newTime);
+        io.emit("videoSeeked", nextStream);
+    });
+
+    // A client's watchdog detected a frozen player and is asking for a fresh
+    // snapshot to force a hard resync, without waiting for the next natural
+    // videoChanged/videoSeeked broadcast.
+    socket.on("requestSync", () => {
+        console.log("requestSync received from:", socket.id);
+        socket.emit("currentStream", streamState.getCurrentStream());
     });
 
     socket.on("disconnect", () => {

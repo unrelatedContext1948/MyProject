@@ -5,10 +5,13 @@ and wires up the waveform visualizer for ad breaks.
 Data flow:
   Server  →  'currentStream'  →  create / seek YouTube player, render queue
   Server  →  'videoChanged'   →  load next video, update UI
+  Server  →  'videoSeeked'    →  seek within the current video, update UI
   Server  →  'queueUpdated'   →  refresh queue display
   Server  →  'adBreakStart'   →  show waveform visualizer overlay
   Server  →  'adBreakEnd'     →  hide visualizer, resume normal display
   Client  →  'videoEnded'     →  server advances stream, broadcasts videoChanged
+  Client  →  'seek'           →  server recomputes master clock, broadcasts videoSeeked
+  Client  →  'requestSync'    →  server replies with a fresh 'currentStream' (hard resync)
 */
 
 const socket = io();
@@ -19,6 +22,16 @@ let mergedQueue = [];      // merged songs + ad-break placeholders (used for dis
 let currentIndex = 0;
 let ytApiReady = false;
 let pendingStream = null;  // buffered stream data received before YT API was ready
+
+// ─── Timeline slider state ───────────────────────────────────────────────────
+let isScrubbing = false;   // true while the user is dragging the slider
+
+// ─── Freeze watchdog state ───────────────────────────────────────────────────
+const FREEZE_TIMEOUT_MS = 5000;
+let watchdogLastTime = 0;
+let watchdogLastAdvanceAt = Date.now();
+let watchdogBufferingSince = null;
+let resyncInFlight = false;
 
 // ─── YouTube IFrame API ──────────────────────────────────────────────────────
 
@@ -61,6 +74,10 @@ function _onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
         socket.emit("videoEnded", currentIndex);
     }
+    // Any real state transition means the player is alive – give the
+    // watchdog a fresh baseline so it doesn't misread a normal buffering
+    // blip (which briefly halts currentTime too) as a freeze.
+    resetWatchdog();
 }
 
 function _initPlayer(streamData) {
@@ -71,9 +88,11 @@ function _initPlayer(streamData) {
 
     if (player && typeof player.loadVideoById === "function") {
         player.loadVideoById({ videoId, startSeconds: streamData.currentTime || 0 });
+        player.playVideo();
     } else {
         _createPlayer(videoId, streamData.currentTime || 0);
     }
+    resetWatchdog();
 }
 
 // ─── Socket.IO events ────────────────────────────────────────────────────────
@@ -124,6 +143,26 @@ socket.on("videoChanged", (streamData) => {
 
     const slider = document.getElementById("volumeSlider");
     if (player && player.setVolume) player.setVolume(parseInt(slider.value));
+    resetWatchdog();
+});
+
+// Fired to every client when anyone drags the shared timeline slider.
+// Seeks within the currently loaded video instead of reloading it, so
+// playback keeps going instead of restarting from 0.
+socket.on("videoSeeked", (streamData) => {
+    currentIndex = streamData.currentIndex;
+
+    if (player && typeof player.seekTo === "function") {
+        player.seekTo(streamData.currentTime || 0, true);
+        if (player.getPlayerState && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+            player.playVideo();
+        }
+    }
+
+    if (!isScrubbing) {
+        updateProgressUI(streamData.currentTime || 0);
+    }
+    resetWatchdog();
 });
 
 // Fired when any client submits a new song
@@ -154,8 +193,119 @@ socket.on("adBreakEnd", (streamData) => {
             const videoId = extractVideoId(streamData.currentVideo.VideoURL);
             if (videoId) player.loadVideoById(videoId);
         }
+        resetWatchdog();
     }
 });
+
+// ─── Timeline slider ─────────────────────────────────────────────────────────
+
+const progressSlider = document.getElementById("progressSlider");
+const progressCurrentTimeLabel = document.getElementById("progressCurrentTime");
+const progressDurationLabel = document.getElementById("progressDuration");
+
+function formatTime(totalSeconds) {
+    const seconds = Math.max(0, Math.floor(totalSeconds || 0));
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${String(secs).padStart(2, "0")}`;
+}
+
+// Reflects a given position in the UI without touching the player or the
+// network – used both for local scrub previews and for remote updates.
+function updateProgressUI(currentTime, duration) {
+    if (typeof duration === "number" && duration > 0) {
+        progressSlider.max = duration;
+        progressDurationLabel.textContent = formatTime(duration);
+    }
+    progressSlider.value = currentTime;
+    progressCurrentTimeLabel.textContent = formatTime(currentTime);
+}
+
+// While dragging: only update the local preview (label + thumb position).
+// Emitting on every 'input' tick would spam the server with seek requests,
+// forcing everyone's player to reload dozens of times per second – which is
+// exactly what used to make the whole stream appear to freeze.
+progressSlider.addEventListener("input", () => {
+    isScrubbing = true;
+    progressCurrentTimeLabel.textContent = formatTime(progressSlider.value);
+});
+
+// On release: send the final position once. The server recomputes the
+// master clock and broadcasts 'videoSeeked' to every client, including this
+// one, so the seek is applied consistently rather than assumed locally.
+progressSlider.addEventListener("change", () => {
+    const newTime = parseFloat(progressSlider.value);
+    socket.emit("seek", newTime);
+    isScrubbing = false;
+});
+
+// Keep the slider in sync with actual playback once per second, unless the
+// user currently has hold of it.
+setInterval(() => {
+    if (!player || isScrubbing) return;
+    if (typeof player.getCurrentTime !== "function" || typeof player.getDuration !== "function") return;
+
+    const duration = player.getDuration();
+    const current = player.getCurrentTime();
+    updateProgressUI(current, duration);
+}, 1000);
+
+// ─── Freeze watchdog ─────────────────────────────────────────────────────────
+
+function resetWatchdog() {
+    watchdogLastTime = player && typeof player.getCurrentTime === "function" ? player.getCurrentTime() : 0;
+    watchdogLastAdvanceAt = Date.now();
+    watchdogBufferingSince = null;
+}
+
+// Forces a full resync instead of just retrying playVideo(): a frozen
+// embedded iframe can be stuck in a state where in-page API calls no longer
+// take effect, but loadVideoById() re-issues a fresh command to the embed
+// and reseeds it with the server's authoritative current position.
+function hardResync() {
+    if (resyncInFlight) return;
+    resyncInFlight = true;
+    console.warn("[Watchdog] Player frozen – forcing hard resync");
+    socket.emit("requestSync");
+    // Give the server round-trip a moment before allowing another resync,
+    // instead of re-triggering every tick while the reload is in flight.
+    setTimeout(() => {
+        resyncInFlight = false;
+    }, FREEZE_TIMEOUT_MS);
+}
+
+setInterval(() => {
+    if (!player || typeof player.getPlayerState !== "function" || resyncInFlight) return;
+
+    const state = player.getPlayerState();
+
+    if (state === YT.PlayerState.BUFFERING) {
+        watchdogBufferingSince = watchdogBufferingSince || Date.now();
+        if (Date.now() - watchdogBufferingSince > FREEZE_TIMEOUT_MS) {
+            hardResync();
+        }
+        return;
+    }
+    watchdogBufferingSince = null;
+
+    if (state !== YT.PlayerState.PLAYING) {
+        // Paused/cued/unstarted on purpose (e.g. ad break) – not a freeze.
+        watchdogLastTime = player.getCurrentTime ? player.getCurrentTime() : watchdogLastTime;
+        watchdogLastAdvanceAt = Date.now();
+        return;
+    }
+
+    const currentTime = player.getCurrentTime();
+    if (currentTime > watchdogLastTime + 0.25) {
+        watchdogLastTime = currentTime;
+        watchdogLastAdvanceAt = Date.now();
+        return;
+    }
+
+    if (Date.now() - watchdogLastAdvanceAt > FREEZE_TIMEOUT_MS) {
+        hardResync();
+    }
+}, 1000);
 
 // ─── UI helpers ──────────────────────────────────────────────────────────────
 
