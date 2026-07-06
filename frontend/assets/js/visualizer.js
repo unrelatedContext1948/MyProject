@@ -1,11 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
   const canvas = document.getElementById("waveformCanvas");
   const ctx = canvas.getContext("2d");
+  const audioElement = document.getElementById("adAudio");
+  const unlockButton = document.getElementById("audioUnlockButton");
 
   let audioContext = null;
   let analyser = null;
   let source = null;
   let animationId = null;
+  let pendingAudioUrl = null; // set when play() was blocked, retried by the unlock button
 
 
   const LABELS = [
@@ -41,18 +44,89 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  async function setupAudio(audioElement) {
-    if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = audioContext.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.88;
-      source = audioContext.createMediaElementSource(audioElement);
-      source.connect(analyser);
-      analyser.connect(audioContext.destination);
-    }
+  // Builds the Web Audio graph exactly once. A <audio> element may only ever
+  // be bound to a single MediaElementSourceNode for its entire lifetime
+  // (a second createMediaElementSource() call throws InvalidStateError), and
+  // on iOS a freshly-created AudioContext starts 'suspended' again unless the
+  // page has already been unlocked by a user gesture – so we never close()
+  // this context and recreate it per ad break, we just reuse it.
+  function ensureAudioGraph() {
+    if (audioContext) return audioContext;
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.88;
+    source = audioContext.createMediaElementSource(audioElement);
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+    return audioContext;
+  }
+
+  async function setupAudio() {
+    ensureAudioGraph();
     if (audioContext.state === "suspended") {
       await audioContext.resume();
+    }
+  }
+
+  // ─── iOS / Safari user-gesture unlock ────────────────────────────────────
+  //
+  // AudioContext.resume() and the very first HTMLMediaElement.play() must
+  // both happen synchronously inside a real user gesture (click/touchend) on
+  // iOS – an async socket.io callback never counts. Once any audio has been
+  // started that way, the whole page is "blessed" for its remaining
+  // lifetime, so we only need to catch the first genuine tap anywhere.
+  function unlockAudioSync() {
+    ensureAudioGraph();
+    if (audioContext.state === "suspended") audioContext.resume();
+
+    // Bless the <audio> element itself too: play()+pause() inside the same
+    // gesture satisfies iOS's separate HTMLMediaElement gesture requirement,
+    // so later programmatic play() calls from the socket handler succeed.
+    const wasMuted = audioElement.muted;
+    audioElement.muted = true;
+    audioElement.play()
+      .then(() => {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        audioElement.muted = wasMuted;
+      })
+      .catch(() => {
+        audioElement.muted = wasMuted;
+      });
+  }
+
+  // Multiple event types for safety across iOS/Safari versions – whichever
+  // fires first wins, the others are removed automatically ({ once: true }).
+  ["pointerdown", "touchend", "click", "keydown"].forEach((eventName) => {
+    document.addEventListener(eventName, unlockAudioSync, { once: true, passive: true });
+  });
+
+  // Fallback UI: if an ad break arrives before the user has interacted with
+  // the page at all, autoplay will still be blocked. Offer an explicit tap
+  // target so unlocking happens inside a real gesture instead of leaving the
+  // visualizer frozen with no way to recover.
+  unlockButton.addEventListener("click", () => {
+    unlockButton.classList.add("hidden");
+    if (pendingAudioUrl) {
+      const urlToRetry = pendingAudioUrl;
+      pendingAudioUrl = null;
+      startPlayback(urlToRetry);
+    }
+  });
+
+  async function startPlayback(audioUrl) {
+    audioElement.src = audioUrl;
+    await setupAudio();
+
+    try {
+      await audioElement.play();
+      unlockButton.classList.add("hidden");
+    } catch (err) {
+      console.warn("[Visualizer] Audio play blocked, waiting for user tap:", err);
+      pendingAudioUrl = audioUrl;
+      unlockButton.classList.remove("hidden");
     }
   }
 
@@ -233,34 +307,33 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const audioElement = document.getElementById("adAudio");
-    audioElement.src = audioUrl;
     resizeCanvas();
-    await setupAudio(audioElement);
-
-    audioElement.play().catch((err) => console.warn("[Visualizer] Audio play error:", err));
+    ensureAudioGraph(); // must exist before drawAuraRing() reads from `analyser`
+    // Runs the analyser-driven ring immediately. If playback below turns out
+    // to be blocked, the loop just keeps rendering silence (flat ring) until
+    // the user taps the unlock button and audio actually starts flowing –
+    // no need to tear down and restart the animation loop.
     drawAuraRing();
     audioElement.onended = () => hide();
+
+    await startPlayback(audioUrl);
   }
 
   function hide() {
     const adBreakOverlay = document.getElementById("adBreakOverlay");
     adBreakOverlay.classList.add("hidden");
+    unlockButton.classList.add("hidden");
+    pendingAudioUrl = null;
     if (animationId) {
       cancelAnimationFrame(animationId);
       animationId = null;
     }
-    if (audioContext) {
-      audioContext.close();
-      audioContext = null;
-    }
-    if (analyser) {
-      analyser.disconnect();
-      analyser = null;
-    }
-    if (source) {
-      source.disconnect();
-      source = null;
+    // Suspend rather than close(): the AudioContext/MediaElementSource pair
+    // is reused across ad breaks (see ensureAudioGraph) so the next show()
+    // doesn't need a fresh, un-unlocked context or a second (illegal)
+    // createMediaElementSource() call on the same <audio> element.
+    if (audioContext && audioContext.state === "running") {
+      audioContext.suspend();
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
