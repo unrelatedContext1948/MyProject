@@ -15,6 +15,7 @@ of watching the first video in the queue whenever they join the website.
 
 const masterClock = require("./masterClock");
 const PlaylistModel = require("../models/playlistModel");
+const { getApprovedAdBreaks } = require("./songsadbreak");
 
 // Current stream state stored in backend memory
 let queue = [];
@@ -52,6 +53,26 @@ function parseDuration(duration) {
   return 0;
 }
 
+function peekNextAdBreak() {
+  // Get all approved ad breaks and filter out those without a valid URL{
+  const adBreaks = getApprovedAdBreaks();
+  const validAdBreaks = adBreaks.filter((adBreak) => adBreak.AdBreakURL);
+
+  // If there are no valid ad breaks, return the upcoming songs without any ad break
+  if (validAdBreaks.length === 0) return null;
+
+  // Calculate the next valid ad break index based on the currentAdIndex
+
+  validAdIndex = currentAdIndex % validAdBreaks.length;
+  return validAdBreaks[validAdIndex];
+}
+
+function advanceAdBreak() {
+  currentAdIndex++;
+}
+
+let currentAdIndex = 0;
+let validAdIndex = 0; // This variable keeps track of the current valid ad break index
 // This is the function that calculate after how many songs an
 // ad break must be placed at
 function buildMergedQueue(nextAdBreakIn) {
@@ -82,11 +103,17 @@ function buildMergedQueue(nextAdBreakIn) {
     accumulated += videoDuration;
   }
 
-  // insert the ad break at the calculated index
+  const validAdBreak = peekNextAdBreak();
+  if (!validAdBreak) {
+    return upcoming.map((s) => ({ ...s, type: "song" }));
+  }
+
+  // Insert the first valid ad break at the calculated position
   const merged = upcoming.map((s) => ({ ...s, type: "song" }));
   merged.splice(insertAt, 0, {
     type: "adbreak",
-    Title: "Ad Break",
+    // display the ad actual ad break title from the database, so the user knows what ad break is coming up
+    Title: `${validAdBreak.AdBreakTitle}`,
     AdText: "Stay tuned – a short break is coming up.",
   });
 
@@ -160,4 +187,9 @@ module.exports = {
   getCurrentStream,
   moveToNextVideo,
   refreshQueue,
+  peekNextAdBreak,
+  advanceAdBreak,
+  get validAdIndex() {
+    return validAdIndex;
+  },
 };

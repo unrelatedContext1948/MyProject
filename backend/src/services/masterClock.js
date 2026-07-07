@@ -2,8 +2,9 @@
 
 const EventEmitter = require("events");
 const songsAdbreak = require("./songsadbreak");
+const streanState = require("./streamState.js");
 
-const AD_BREAK_INTERVAL = 15 * 60 * 1000; // 15 minutes
+const AD_BREAK_INTERVAL = 1 * 60 * 1000; // 15 minutes
 
 class MasterClock extends EventEmitter {
   constructor() {
@@ -30,24 +31,23 @@ class MasterClock extends EventEmitter {
     }, AD_BREAK_INTERVAL);
   }
   //fira
-  triggerAdBreak() {
+  triggerAdBreak(adBreakData) {
     if (this.isAdBreaking) return;
 
-    const approved = songsAdbreak.getApprovedAdBreaks();
-    if (approved.length === 0) {
+    if (!adBreakData) {
       console.log(
-        "[MasterClock] No approved ad breaks available – skipping this break.",
+        "[MasterClock] No ad break data provided – skipping this break.",
       );
       this.scheduleNextAdBreak();
       return;
     }
 
-    const adBreak = approved[0];
+    this.currentAdBreak = adBreakData;
     this.isAdBreaking = true;
-    this.scheduleNextAdBreak();  
+    this.scheduleNextAdBreak();
 
     console.log("[MasterClock] Ad break starting:");
-    this.emit("adBreakStart", adBreak);
+    this.emit("adBreakStart", adBreakData);
   }
 
   endAdBreak() {

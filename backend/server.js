@@ -8,12 +8,12 @@ use of Socket.IO
 */
 
 //Start Server
-const app = require("./src/app");
+const app = require("./src/app.js");
 const http = require("http");
 const { Server } = require("socket.io");
 
-const streamState = require("./src/services/streamState");
-const masterClock = require("./src/services/masterClock");
+const streamState = require("./src/services/streamState.js");
+const masterClock = require("./src/services/masterClock.js");
 
 const PORT = 3000; //typically for Node-Servers
 
@@ -94,8 +94,13 @@ io.on("connection", (socket) => {
     }
     nextIndexToAppear = reportedIndex;
     const currentStream = streamState.getCurrentStream();
-    if (currentStream.mergedQueue[0] && currentStream.mergedQueue[0].type === "adbreak") {
-      masterClock.triggerAdBreak();
+    if (
+      currentStream.mergedQueue[0] &&
+      currentStream.mergedQueue[0].type === "adbreak"
+    ) {
+      const nextAdBreak = streamState.peekNextAdBreak();
+      streamState.advanceAdBreak();
+      masterClock.triggerAdBreak(nextAdBreak);
     } else {
       const nextStream = streamState.moveToNextVideo();
       io.emit("videoChanged", nextStream);

@@ -65,7 +65,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const adBreakOverlay = document.getElementById("adBreakOverlay");
     adBreakOverlay.classList.remove("hidden");
 
-    document.getElementById("nowPlayingTitle").textContent = "Ad Break";
+    document.getElementById("nowPlayingTitle").textContent =
+      `${adBreak.AdBreakTitle}`;
     document.getElementById("nowPlayingSubmittedBy").textContent =
       `Submitted by: ${adBreak.SubmittedBy}`;
 
