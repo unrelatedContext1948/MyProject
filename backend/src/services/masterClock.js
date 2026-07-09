@@ -30,8 +30,9 @@ class MasterClock extends EventEmitter {
       );
     }, AD_BREAK_INTERVAL);
   }
-  //fira
+
   triggerAdBreak(adBreakData) {
+    
     if (this.isAdBreaking) return;
 
     if (!adBreakData) {

@@ -41,8 +41,7 @@ const songsAdbreak = {
     return db.prepare(sql).run(adBreakId);
   },
 
-  //------------------------------------------------------//
-  //fira new update.
+
   //5. Call the approved ad break text to be converted to audio.
   getApprovedAdBreakText: (adBreakId) => {
     const sql = `
