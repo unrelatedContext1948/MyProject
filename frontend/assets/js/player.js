@@ -12,6 +12,7 @@ let ytApiReady = false;
 let wasPlaying = false;
 let currentVideo = null;
 let videoTimeout = null;
+let isSkippingVideo = false;
 
 // This function is called by the YouTube IFrame API when it's ready
 function onYouTubeIframeAPIReady() {
@@ -39,6 +40,7 @@ function createYouTubePlayer(stream) {
     events: {
       onReady: onPlayerReady,
       onStateChange: onPlayerStateChange,
+      onError: onPlayerError,
     },
   });
 }
@@ -77,10 +79,40 @@ function onPlayerStateChange(event) {
     socket.emit("videoEnded", currentIndex);
   }
 }
+// Called when YouTube cannot play the video (due to copyright) in the embedded player
+function onPlayerError(event){
+
+  if(isSkippingVideo) return;
+  isSkippingVideo = true;
+  clearTimeout(videoTimeout);
+  wasPlaying = false;
+
+  
+  showVideoError("Video cannot be played. It may be unavailable or copyrighted.");
+
+  setTimeout(() => {
+    socket.emit("videoEnded", currentIndex);
+  }, 3000);
+}
+//display on UI below message video cannot be played
+function showVideoError(message) {
+  const titleElement = document.getElementById("nowPlayingTitle");
+  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
+
+  if (titleElement) {
+    titleElement.textContent = message;
+  }
+
+  if(submittedByElement){
+    submittedByElement.textContent = "Skipping to the next video ==>";
+  }
+}
+
 
 // ─── Socket.IO events for the Stream ────────────────────────────────────────────────────────
 
 socket.on("currentStream", (stream) => {
+  isSkippingVideo = false; //make sure vid that is not copyright video is not suddenly skipped
   currentVideo = stream.currentVideo;
   queue = stream.mergedQueue;
   currentIndex = stream.currentIndex;
@@ -95,6 +127,7 @@ socket.on("currentStream", (stream) => {
 });
 
 socket.on("videoChanged", (stream) => {
+  isSkippingVideo = false;
   wasPlaying = false;
   currentVideo = stream.currentVideo;
   queue = stream.mergedQueue;
