@@ -47,6 +47,7 @@ async function renderPendingAdBreaks() {
     // Normalise to the shape the render functions expect
     pendingItems = data.map((item) => ({
       id: item.AdBreakID,
+      title: item.AdBreakTitle,
       text: item.AdBreakText,
       submittedBy: item.SubmittedBy,
       status: item.Status,
@@ -87,7 +88,7 @@ async function renderPendingAdBreaks() {
     box.id = "adbreak-" + element.id;
 
     box.innerHTML = `
-      <div class="pending-header">Submitted by ${element.submittedBy}</div>
+      <div class="pending-header"> ${element.title} submitted by ${element.submittedBy}</div>
       <div class="pending-text">${element.text}</div> 
       <div class="pending-actions">
       <button class="btn-icon btn-approve" onclick="approveAdBreak(${element.id})"
