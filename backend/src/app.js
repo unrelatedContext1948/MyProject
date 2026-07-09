@@ -86,7 +86,7 @@ app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => 
       message: "Queue updated"
     });
 
-    res.status(201).json({ message: "Song added to queue" });
+    res.status(201).json({ message: "Video added to queue" });
   } catch (err) {
     console.error("Error adding song:", err);
     res.status(500).json({ error: "Failed to add song" });

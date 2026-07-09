@@ -114,6 +114,35 @@ function onPlayerStateChange(event) {
     socket.emit("videoEnded", currentIndex);
   }
 }
+// Called when YouTube cannot play the video (due to copyright) in the embedded player
+function onPlayerError(event){
+
+  if(isSkippingVideo) return;
+  isSkippingVideo = true;
+  clearTimeout(videoTimeout);
+  wasPlaying = false;
+
+  
+  showVideoError("Video cannot be played. It may be unavailable or copyrighted.");
+
+  setTimeout(() => {
+    socket.emit("videoEnded", currentIndex);
+  }, 3000);
+}
+//display on UI below message video cannot be played
+function showVideoError(message) {
+  const titleElement = document.getElementById("nowPlayingTitle");
+  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
+
+  if (titleElement) {
+    titleElement.textContent = message;
+  }
+
+  if(submittedByElement){
+    submittedByElement.textContent = "Skipping to the next video ==>";
+  }
+}
+
 
 // Called when YouTube cannot play the video (due to copyright) in the embedded player
 function onPlayerError(event) {
