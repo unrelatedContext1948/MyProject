@@ -12,17 +12,16 @@ let ytApiReady = false;
 let wasPlaying = false;
 let currentVideo = null;
 let videoTimeout = null;
-let isSkippingVideo = false;
-let segmentMonitor = null;
-let segmentEndSeconds = null; // The end time of the current segment, if any
+let segmentEndSeconds = null; // stop position of the current segment, null = play to natural end
+let segmentMonitor = null; // interval that watches the segment end boundary
 
 // Absolute position in the source video a client should seek to.
-// startSeconds is where the segment begins
+// startSeconds is where the segment begins 
 // currentTime is how long the segment has already been playing on the server.
 function seekPosition(stream) {
   return Math.floor((stream.startSeconds || 0) + (stream.currentTime || 0));
 }
-
+ 
 // Poll the player and advance the stream once the segment end is reached.
 // Segment videos never fire YouTube's ENDED event at the cut point, so the
 // boundary has to be enforced here.
@@ -60,6 +59,8 @@ function createYouTubePlayer(stream) {
   const videoId = extractVideoId(stream.currentVideo.VideoURL);
   if (!videoId) return;
 
+  segmentEndSeconds = stream.endSeconds ?? null;
+
   // Create the YouTube IFrame Player inside the #youtubePlayer div
   player = new YT.Player("youtubePlayer", {
     width: "100%",
@@ -69,13 +70,13 @@ function createYouTubePlayer(stream) {
       autoplay: 1, //  player autoplay on load
       controls: 0, //  YouTube controls removed
       mute: 1,
-      //sablekb: 1, // disables keyboard controls on player
+      disablekb: 1, // disables keyboard controls on player
+      // start: Math.floor(stream.currentTime),
       start: seekPosition(stream),
     },
     events: {
       onReady: onPlayerReady,
       onStateChange: onPlayerStateChange,
-      onError: onPlayerError,
     },
   });
 }
@@ -96,93 +97,39 @@ function onPlayerReady() {
 function onPlayerStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING) {
     wasPlaying = true;
-    const duration = player.getDuration();
-    if (duration > 0) {
-      clearTimeout(videoTimeout);
-      videoTimeout = setTimeout(
-        () => {
-          socket.emit("videoEnded", currentIndex);
-        },
-        (duration + 5) * 1000,
-      );
+
+    startSegmentMonitor();
+    if (segmentEndSeconds === null){
+      const duration = player.getDuration();
+      if (duration > 0) {
+        clearTimeout(videoTimeout);
+        videoTimeout = setTimeout(
+          () => {
+            socket.emit("videoEnded", currentIndex);
+          },
+          (duration + 5) * 1000,
+        );
+      }
     }
   }
   // YT.PlayerState.ENDED === 0 — fires when the current video finishes
   if (event.data === YT.PlayerState.ENDED && wasPlaying) {
     wasPlaying = false;
     clearTimeout(videoTimeout);
+    stopSegmentMonitor();
     socket.emit("videoEnded", currentIndex);
-  }
-}
-// Called when YouTube cannot play the video (due to copyright) in the embedded player
-function onPlayerError(event){
-
-  if(isSkippingVideo) return;
-  isSkippingVideo = true;
-  clearTimeout(videoTimeout);
-  wasPlaying = false;
-
-  
-  showVideoError("Video cannot be played. It may be unavailable or copyrighted.");
-
-  setTimeout(() => {
-    socket.emit("videoEnded", currentIndex);
-  }, 3000);
-}
-//display on UI below message video cannot be played
-function showVideoError(message) {
-  const titleElement = document.getElementById("nowPlayingTitle");
-  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
-
-  if (titleElement) {
-    titleElement.textContent = message;
-  }
-
-  if(submittedByElement){
-    submittedByElement.textContent = "Skipping to the next video ==>";
-  }
-}
-
-
-// Called when YouTube cannot play the video (due to copyright) in the embedded player
-function onPlayerError(event) {
-  if (isSkippingVideo) return;
-
-  isSkippingVideo = true;
-  clearTimeout(videoTimeout);
-  wasPlaying = false;
-
-  showVideoError(
-    "Video cannot be played. It may be unavailable or copyrighted.",
-  );
-
-  setTimeout(() => {
-    socket.emit("videoEnded", currentIndex);
-  }, 3000);
-}
-//display on UI below message video cannot be played
-function showVideoError(message) {
-  const titleElement = document.getElementById("nowPlayingTitle");
-  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
-
-  if (titleElement) {
-    titleElement.textContent = message;
-  }
-
-  if (submittedByElement) {
-    submittedByElement.textContent = "Skipping to the next video ==>";
   }
 }
 
 // ─── Socket.IO events for the Stream ────────────────────────────────────────────────────────
 
 socket.on("currentStream", (stream) => {
-  isSkippingVideo = false; //make sure vid that is not copyright video is not suddenly skipped
   currentVideo = stream.currentVideo;
   queue = stream.mergedQueue;
   currentIndex = stream.currentIndex;
 
   const videoId = extractVideoId(currentVideo?.VideoURL);
+  segmentEndSeconds = stream.endSeconds ?? null;
   if (player) {
     player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
   } else {
@@ -192,7 +139,6 @@ socket.on("currentStream", (stream) => {
 });
 
 socket.on("videoChanged", (stream) => {
-  isSkippingVideo = false;
   wasPlaying = false;
   stopSegmentMonitor();
   currentVideo = stream.currentVideo;
@@ -202,7 +148,8 @@ socket.on("videoChanged", (stream) => {
 
   if (player && typeof player.loadVideoById === "function") {
     const videoId = extractVideoId(currentVideo.VideoURL);
-    player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
+    // A freshly changed video starts at its segment start, default 0.
+    player.loadVideoById({videoId, startSeconds: seekPosition(stream) });
   }
 
   showCurrentSong();
