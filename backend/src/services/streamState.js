@@ -45,13 +45,42 @@ function getCurrentVideo() {
 // an ad break should come.
 // this methode is therefore here to count the time of several songs
 // so at the end we can put the ad break after 15 minutes of played music
-function parseDuration(duration) {
+function parseTimeToSeconds(duration) {
   if (!duration) return 0;
   const parts = duration.split(":").map(Number);
   if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   if (parts.length === 2) return parts[0] * 60 + parts[1];
   return 0;
 }
+
+// Resolve the effective playback window for a video.
+// startSeconds: where to begin in the source video (0 if unset)
+// endSeconds:   where to stop or null to play to the natural end
+// segmentDuration: length of the played window in seconds, used for sync
+//                  timing and ad break spacing
+function getSegmentBounds(video) {
+  if (!video) return { startSeconds: 0, endSeconds: null, segmentDuration: 0 };
+ 
+  const fullDuration = parseTimeToSeconds(video.Duration);
+  let startSeconds = parseTimeToSeconds(video.StartTime) || 0;
+  let endSeconds = parseTimeToSeconds(video.EndTime);
+ 
+  // Clamp against the real video length when it is known.
+  if (fullDuration > 0) {
+    if (startSeconds < 0 || startSeconds >= fullDuration) startSeconds = 0;
+    if (endSeconds !== null && endSeconds > fullDuration) endSeconds = fullDuration;
+  }
+  // An end that is not after the start is invalid, treat as no end bound.
+  if (endSeconds !== null && endSeconds <= startSeconds) endSeconds = null;
+ 
+  const segmentDuration =
+    endSeconds !== null
+      ? endSeconds - startSeconds
+      : Math.max(0, fullDuration - startSeconds);
+ 
+  return { startSeconds, endSeconds, segmentDuration };
+}
+
 
 function peekNextAdBreak() {
   // Get all approved ad breaks and filter out those without a valid URL{
@@ -95,7 +124,7 @@ function buildMergedQueue(nextAdBreakIn) {
 
   // calculated time accumlated for each song and insert it at the index shere the specified time threshold is (after 15mins)
   for (let i = 0; i < upcoming.length; i++) {
-    const videoDuration = parseDuration(upcoming[i].Duration);
+    const videoDuration = getSegmentBounds(upcoming[i]).segmentDuration; // factors in segment and usual full length video
     if (accumulated >= nextAdBreakIn) {
       insertAt = i;
       break;
@@ -130,11 +159,12 @@ instead of watching the first video from the beginning of the queue when they jo
 */
 function getCurrentStream() {
   const currentVideo = getCurrentVideo();
+  const bounds = getSegmentBounds(currentVideo);
   const nextAdBreakIn = masterClock.nextAdBreakTime
     ? Math.max(0, Math.floor((masterClock.nextAdBreakTime - Date.now()) / 1000))
     : null;
   const elapsedSeconds = Math.floor((Date.now() - videoStartTime) / 1000);
-  const currentDuration = parseDuration(currentVideo?.Duration) || 0;
+  const currentDuration = bounds.segmentDuration;
   const remainingTime = Math.max(0, currentDuration - elapsedSeconds);
 
   const adjustedNextAdBreakIn =
@@ -146,6 +176,8 @@ function getCurrentStream() {
     adjustedNextAdBreakIn,
     currentTime: Math.floor((Date.now() - videoStartTime) / 1000),
     mergedQueue: buildMergedQueue(adjustedNextAdBreakIn),
+    startSeconds: bounds.startSeconds,
+    endSeconds: bounds.endSeconds,
   };
 }
 

@@ -12,6 +12,42 @@ let ytApiReady = false;
 let wasPlaying = false;
 let currentVideo = null;
 let videoTimeout = null;
+let isSkippingVideo = false;
+let segmentMonitor = null;
+let segmentEndSeconds = null; // The end time of the current segment, if any
+
+// Absolute position in the source video a client should seek to.
+// startSeconds is where the segment begins
+// currentTime is how long the segment has already been playing on the server.
+function seekPosition(stream) {
+  return Math.floor((stream.startSeconds || 0) + (stream.currentTime || 0));
+}
+
+// Poll the player and advance the stream once the segment end is reached.
+// Segment videos never fire YouTube's ENDED event at the cut point, so the
+// boundary has to be enforced here.
+function startSegmentMonitor() {
+  stopSegmentMonitor();
+  if (segmentEndSeconds === null) return;
+  segmentMonitor = setInterval(() => {
+    if (!player || typeof player.getCurrentTime !== "function") return;
+    if (player.getCurrentTime() >= segmentEndSeconds) {
+      stopSegmentMonitor();
+      clearTimeout(videoTimeout);
+      if (wasPlaying) {
+        wasPlaying = false;
+        socket.emit("videoEnded", currentIndex);
+      }
+    }
+  }, 500);
+}
+ 
+function stopSegmentMonitor() {
+  if (segmentMonitor) {
+    clearInterval(segmentMonitor);
+    segmentMonitor = null;
+  }
+}
 
 // This function is called by the YouTube IFrame API when it's ready
 function onYouTubeIframeAPIReady() {
@@ -33,12 +69,13 @@ function createYouTubePlayer(stream) {
       autoplay: 1, //  player autoplay on load
       controls: 0, //  YouTube controls removed
       mute: 1,
-      disablekb: 1, // disables keyboard controls on player
-      start: Math.floor(stream.currentTime),
+      //sablekb: 1, // disables keyboard controls on player
+      start: seekPosition(stream),
     },
     events: {
       onReady: onPlayerReady,
       onStateChange: onPlayerStateChange,
+      onError: onPlayerError,
     },
   });
 }
@@ -78,16 +115,47 @@ function onPlayerStateChange(event) {
   }
 }
 
+// Called when YouTube cannot play the video (due to copyright) in the embedded player
+function onPlayerError(event) {
+  if (isSkippingVideo) return;
+
+  isSkippingVideo = true;
+  clearTimeout(videoTimeout);
+  wasPlaying = false;
+
+  showVideoError(
+    "Video cannot be played. It may be unavailable or copyrighted.",
+  );
+
+  setTimeout(() => {
+    socket.emit("videoEnded", currentIndex);
+  }, 3000);
+}
+//display on UI below message video cannot be played
+function showVideoError(message) {
+  const titleElement = document.getElementById("nowPlayingTitle");
+  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
+
+  if (titleElement) {
+    titleElement.textContent = message;
+  }
+
+  if (submittedByElement) {
+    submittedByElement.textContent = "Skipping to the next video ==>";
+  }
+}
+
 // ─── Socket.IO events for the Stream ────────────────────────────────────────────────────────
 
 socket.on("currentStream", (stream) => {
+  isSkippingVideo = false; //make sure vid that is not copyright video is not suddenly skipped
   currentVideo = stream.currentVideo;
   queue = stream.mergedQueue;
   currentIndex = stream.currentIndex;
 
   const videoId = extractVideoId(currentVideo?.VideoURL);
   if (player) {
-    player.loadVideoById({ videoId, startSeconds: stream.currentTime });
+    player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
   } else {
     pendingStream = stream;
     if (ytApiReady) createYouTubePlayer(stream);
@@ -95,14 +163,17 @@ socket.on("currentStream", (stream) => {
 });
 
 socket.on("videoChanged", (stream) => {
+  isSkippingVideo = false;
   wasPlaying = false;
+  stopSegmentMonitor();
   currentVideo = stream.currentVideo;
   queue = stream.mergedQueue;
   currentIndex = stream.currentIndex;
+  segmentEndSeconds = stream.endSeconds ?? null;
 
   if (player && typeof player.loadVideoById === "function") {
     const videoId = extractVideoId(currentVideo.VideoURL);
-    player.loadVideoById(videoId);
+    player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
   }
 
   showCurrentSong();
