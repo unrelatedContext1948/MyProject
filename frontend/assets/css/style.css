@@ -411,6 +411,11 @@ textarea.form-input {
 }
 
 /*Toggle Password*/
+
+input[type="password"]::-ms-reveal {
+  display: none;
+}
+
 .password-input-element {
   position: relative;
   width: 100%;
