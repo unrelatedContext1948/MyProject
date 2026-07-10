@@ -26,20 +26,6 @@
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-#adVideo {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-}
-
-#adVideo.active {
-    display: block;
-}
-
 .ad-break-overlay {
   position: absolute;
   top: 0;
