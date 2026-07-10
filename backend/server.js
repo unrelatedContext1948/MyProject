@@ -6,6 +6,10 @@ use of Socket.IO
 2. broadcasting queue updates when new videos are submitted
 3. notifying clients when the currently playing content changes
 */
+let adBreakWarningTimer = null;
+
+const { generateAdBreakNotification } = require("./src/services/tts.js");
+const songAdBreak = require("./src/services/songsadbreak.js");
 
 //Start Server
 const app = require("./src/app.js");
@@ -39,18 +43,55 @@ streamState.loadQueue();
 // Start the 15-minute ad-break timer
 masterClock.start();
 
+async function scheduleAdBreakWarning(stream) {
+  clearTimeout(adBreakWarningTimer);
+  if (!stream.mergedQueue[0] || stream.mergedQueue[0].type !== "adbreak")
+    return;
+  try {
+    const notificationAudioUrl = await generateAdBreakNotification();
+    const playAdBreakNotifictionIn = Math.max(
+      0,
+      (stream.remainingTime - 18) * 1000,
+    ); // 10 seconds before the video ends, we play the ad break notification
+    adBreakWarningTimer = setTimeout(() => {
+      io.emit("adBreakNotification", {
+        audioUrl: notificationAudioUrl,
+        videoUrl: "/assets/video/HumanMusic.mp4",
+      });
+    }, playAdBreakNotifictionIn);
+  } catch (error) {
+    console.error("Failed to generate ad break notification:", error);
+    const playAdBreakNotifictionIn = Math.max(
+      0,
+      (stream.remainingTime - 18) * 1000,
+    );
+    adBreakWarningTimer = setTimeout(() => {
+      io.emit("adBreakNotification", {
+        audioUrl: null,
+        videoUrl: "/assets/video/HumanMusic.mp4",
+      });
+    }, playAdBreakNotifictionIn);
+  }
+}
+
+scheduleAdBreakWarning(streamState.getCurrentStream());
+
 // Forward master-clock events to every connected client
 masterClock.on("adBreakStart", (adBreak) => {
   console.log("[Socket] Broadcasting adBreakStart");
   io.emit("adBreakStart", adBreak);
 });
 
-masterClock.on("adBreakEnd", () => {
+masterClock.on("adBreakEnd", (finishedAdBreak) => {
+  if (finishedAdBreak && finishedAdBreak.AdBreakID) {
+    songAdBreak.deletePlayedAdBreak(finishedAdBreak.AdBreakID);
+  }
   console.log("[Socket] Broadcasting adBreakEnd");
   masterClock.adBreakPending = false;
   const nextStream = streamState.moveToNextVideo();
   io.emit("adBreakEnd", nextStream);
   io.emit("videoChanged", nextStream);
+  scheduleAdBreakWarning(nextStream);
 });
 
 //  Problem: Too many videoEnded events at the same time from differnt clients
@@ -104,6 +145,7 @@ io.on("connection", (socket) => {
     } else {
       const nextStream = streamState.moveToNextVideo();
       io.emit("videoChanged", nextStream);
+      scheduleAdBreakWarning(nextStream);
     }
   });
 

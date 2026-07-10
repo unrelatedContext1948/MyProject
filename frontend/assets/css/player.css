@@ -26,12 +26,28 @@
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
+#adVideo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 999;
+    display: none;
+}
+
+#adVideo.active {
+    display: block;
+}
+
 .ad-break-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  z-index: 1000;
 }
 
 #waveformCanvas {
@@ -40,6 +56,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  z-index: 1000;
 }
 
 .hidden {

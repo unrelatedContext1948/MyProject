@@ -178,6 +178,7 @@ function getCurrentStream() {
     mergedQueue: buildMergedQueue(adjustedNextAdBreakIn),
     startSeconds: bounds.startSeconds,
     endSeconds: bounds.endSeconds,
+    remainingTime,
   };
 }
 
