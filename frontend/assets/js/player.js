@@ -40,7 +40,7 @@ function startSegmentMonitor() {
     }
   }, 500);
 }
-
+ 
 function stopSegmentMonitor() {
   if (segmentMonitor) {
     clearInterval(segmentMonitor);
@@ -121,66 +121,6 @@ function onPlayerStateChange(event) {
   }
 }
 
-// Called when YouTube cannot play the video (due to copyright) in the embedded player
-function onPlayerError(event) {
-  if (isSkippingVideo) return;
-  isSkippingVideo = true;
-  clearTimeout(videoTimeout);
-  wasPlaying = false;
-
-  showVideoError(
-    "Video cannot be played. It may be unavailable or copyrighted.",
-  );
-
-  setTimeout(() => {
-    socket.emit("videoEnded", currentIndex);
-  }, 3000);
-}
-//display on UI below message video cannot be played
-function showVideoError(message) {
-  const titleElement = document.getElementById("nowPlayingTitle");
-  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
-
-  if (titleElement) {
-    titleElement.textContent = message;
-  }
-
-  if (submittedByElement) {
-    submittedByElement.textContent = "Skipping to the next video ==>";
-  }
-}
-
-// Called when YouTube cannot play the video (due to copyright) in the embedded player
-function onPlayerError(event) {
-  if (isSkippingVideo) return;
-
-  isSkippingVideo = true;
-  clearTimeout(videoTimeout);
-  wasPlaying = false;
-
-  showVideoError(
-    "Video cannot be played. It may be unavailable or copyrighted.",
-  );
-
-  setTimeout(() => {
-    socket.emit("videoEnded", currentIndex);
-  }, 3000);
-}
-//display on UI below message video cannot be played
-function showVideoError(message) {
-  const titleElement = document.getElementById("nowPlayingTitle");
-  const submittedByElement = document.getElementById("nowPlayingSubmittedBy");
-
-  if (titleElement) {
-    titleElement.textContent = message;
-  }
-
-  if (submittedByElement) {
-    submittedByElement.textContent = "Skipping to the next video ==>";
-  }
-}
-
-
 // ─── Socket.IO events for the Stream ────────────────────────────────────────────────────────
 
 socket.on("currentStream", (stream) => {
@@ -217,27 +157,6 @@ socket.on("videoChanged", (stream) => {
 });
 
 // ─── Ad break events ─────────────────────────────────────────────────────────
-
-socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
-  const adVideo = document.getElementById("adVideo");
-  const adAudio = document.getElementById("adAudio");
-  if (!adVideo || !videoUrl) return;
-  adVideo.src = videoUrl;
-  adVideo.classList.add("active");
-  adVideo.play();
-  adVideo.onended = () => {
-    adVideo.pause();
-    adVideo.classList.remove("active");
-    adVideo.src = ""; // Clear the source to stop the video from playing again
-  };
-
-  if (!audioUrl || !adAudio) return;
-  adAudio.src = audioUrl;
-  adAudio.play();
-  adAudio.onended = () => {
-    adAudio.pause();
-  };
-});
 
 socket.on("adBreakStart", (adBreak) => {
   wasPlaying = false;

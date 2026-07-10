@@ -89,7 +89,6 @@ async function renderPendingAdBreaks() {
 
     box.innerHTML = `
       <div class="pending-header"> ${element.title} submitted by ${element.submittedBy}</div>
-
       <div class="pending-text">${element.text}</div> 
       <div class="pending-actions">
       <button class="btn-icon btn-approve" onclick="approveAdBreak(${element.id})"
