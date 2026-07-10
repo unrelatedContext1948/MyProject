@@ -1,5 +1,5 @@
 const db = require("../database/database");
-const generateSpeech = require("./tts");
+const { generateSpeech } = require("./tts");
 
 const songsAdbreak = {
   // 1. Add ad break text to the database.
@@ -69,7 +69,7 @@ const songsAdbreak = {
     const adBreakText = adBreakRow.AdBreakText;
 
     //II. Create a file for the audio
-    const fileName = `adbreak_${AdBreakID}.mp3`; 
+    const fileName = `adbreak_${AdBreakID}.mp3`;
 
     //III. Convert the ad break text to audio.
     await generateSpeech(adBreakText, fileName);
@@ -90,6 +90,14 @@ const songsAdbreak = {
             WHERE Status = 'approved' ORDER BY AdBreakID ASC
         `;
     return db.prepare(sql).all();
+  },
+
+  deletePlayedAdBreak: (adBreakId) => {
+    const sql = `
+            DELETE FROM AdBreaksTable
+            WHERE AdBreakID = ?
+        `;
+    return db.prepare(sql).run(adBreakId);
   },
 };
 module.exports = songsAdbreak;
