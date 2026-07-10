@@ -53,6 +53,19 @@ function parseTimeToSeconds(duration) {
   return 0;
 }
 
+// converts duration of segment to seconds "MM:SS" or "H:MM:SS"
+// now the segment duration displays the same format as the full video duration
+function convertSegmentDuration(totalSeconds) {
+  totalSeconds = Math.max(0, Math.floor(totalSeconds || 0));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
 // Resolve the effective playback window for a video.
 // startSeconds: where to begin in the source video (0 if unset)
 // endSeconds:   where to stop or null to play to the natural end
@@ -116,7 +129,9 @@ function buildMergedQueue(nextAdBreakIn) {
 
   // No ad break scheduled or the 15 minutes intervall is overwhelmed
   if (nextAdBreakIn === null || nextAdBreakIn > 900) {
-    return upcoming.map((s) => ({ ...s, type: "song" }));
+    return upcoming.map((s) => ({ ...s, type: "song", 
+      Duration: convertSegmentDuration(getSegmentBounds(s).segmentDuration),
+    }));
   }
 
   let accumulated = 0; // time accumlated
@@ -134,11 +149,15 @@ function buildMergedQueue(nextAdBreakIn) {
 
   const validAdBreak = peekNextAdBreak();
   if (!validAdBreak) {
-    return upcoming.map((s) => ({ ...s, type: "song" }));
+    return upcoming.map((s) => ({ ...s, type: "song",
+      Duration: convertSegmentDuration(getSegmentBounds(s).segmentDuration),
+     }));
   }
 
   // Insert the first valid ad break at the calculated position
-  const merged = upcoming.map((s) => ({ ...s, type: "song" }));
+  const merged = upcoming.map((s) => ({ ...s, type: "song",
+    Duration: convertSegmentDuration(getSegmentBounds(s).segmentDuration),
+   }));
   merged.splice(insertAt, 0, {
     type: "adbreak",
     // display the ad actual ad break title from the database, so the user knows what ad break is coming up
