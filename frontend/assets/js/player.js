@@ -189,11 +189,15 @@ socket.on("videoChanged", (stream) => {
   if (typeof renderQueue === "function") renderQueue();
 });
 
+socket.on("queueUpdated", (stream) => {
+  queue = stream.mergedQueue;
+  if (typeof renderQueue === "function") renderQueue();
+});
+
 // ─── Ad break events ─────────────────────────────────────────────────────────
 
 socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
   isAdPlaying = true;
-  wasPlaying = false;
   if (player) player.mute();
   const adVideo = document.getElementById("adVideo");
   const adAudio = document.getElementById("adAudio");

@@ -82,9 +82,10 @@ app.post("/api/queue/submit", express.json(), authenticate, async (req, res) => 
     const io = req.app.get("io");
     // notify all connected clients that queue has changed
     // users can see new vids added without refreshing the queue
-    io.emit("queueUpdated", {
-      message: "Queue updated"
-    });
+    if (io) {
+      io.emit("queueUpdated", streamState.getCurrentStream());
+    }
+    
 
     res.status(201).json({ message: "Video added to queue" });
   } catch (err) {
