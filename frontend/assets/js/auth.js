@@ -84,8 +84,6 @@ async function handleLogin(event) {
   showRole(role);
 }
 
-
-
 //Role bagde next to logout button after succesfully logging in
 function showRole(role) {
   document.getElementById("loginBtn").classList.add("hidden");
@@ -143,3 +141,32 @@ async function logout() {
   // Hide submission section
   document.getElementById("submissionSection").classList.add("hidden");
 }
+
+// Fetch user data from the backend API
+async function loadUserData() {
+  const token = localStorage.getItem("token");
+
+  // If no token is found, the user is not logged in
+  if (!token) {
+    return;
+  }
+
+  // Fetch user data from the backend using the token for authentication
+  const response = await fetch("/api/user/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    // If the token is invalid or expired, remove it from localStorage
+    localStorage.clear();
+    return;
+  }
+
+  const data = await response.json();
+
+  AuthState.user = data.username;
+  AuthState.role = data.role;
+  showRole(data.role);
+}
+loadUserData();
