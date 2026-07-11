@@ -15,14 +15,15 @@ let videoTimeout = null;
 let isSkippingVideo = false; // for skipping copyright video
 let segmentEndSeconds = null; // stop position of the current segment, null = play to natural end
 let segmentMonitor = null; // interval that watches the segment end boundary
+let isAdPlaying = false;
 
 // Absolute position in the source video a client should seek to.
-// startSeconds is where the segment begins 
+// startSeconds is where the segment begins
 // currentTime is how long the segment has already been playing on the server.
 function seekPosition(stream) {
   return Math.floor((stream.startSeconds || 0) + (stream.currentTime || 0));
 }
- 
+
 // Poll the player and advance the stream once the segment end is reached.
 // Segment videos never fire YouTube's ENDED event at the cut point, so the
 // boundary has to be enforced here.
@@ -101,7 +102,7 @@ function onPlayerStateChange(event) {
     wasPlaying = true;
 
     startSegmentMonitor();
-    if (segmentEndSeconds === null){
+    if (segmentEndSeconds === null) {
       const duration = player.getDuration();
       if (duration > 0) {
         clearTimeout(videoTimeout);
@@ -181,7 +182,7 @@ socket.on("videoChanged", (stream) => {
   if (player && typeof player.loadVideoById === "function") {
     const videoId = extractVideoId(currentVideo.VideoURL);
     // A freshly changed video starts at its segment start, default 0.
-    player.loadVideoById({videoId, startSeconds: seekPosition(stream) });
+    player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
   }
 
   showCurrentSong();
@@ -191,34 +192,67 @@ socket.on("videoChanged", (stream) => {
 // ─── Ad break events ─────────────────────────────────────────────────────────
 
 socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
+  isAdPlaying = true;
+  wasPlaying = false;
+  if (player) player.mute();
   const adVideo = document.getElementById("adVideo");
   const adAudio = document.getElementById("adAudio");
-  if (!adVideo || !videoUrl) return;
-  adVideo.src = videoUrl;
-  adVideo.classList.add("active");
-  adVideo.play();
-  adVideo.onended = () => {
-    adVideo.pause();
-    adVideo.classList.remove("active");
-    adVideo.src = ""; // Clear the source to stop the video from playing again
-  };
 
-  if (!audioUrl || !adAudio) return;
-  adAudio.src = audioUrl;
-  adAudio.play();
-  adAudio.onended = () => {
-    adAudio.pause();
-  };
+  let isVideoPlaying = false;
+  let isAudioPlaying = false;
+
+  function checkAdCompletion() {
+    if (!isVideoPlaying && !isAudioPlaying) {
+      isAdPlaying = false;
+      if (player) player.unMute();
+      updateVolume();
+    }
+  }
+
+  if (adVideo && videoUrl) {
+    isVideoPlaying = true;
+    adVideo.src = videoUrl;
+    adVideo.classList.add("active");
+    adVideo.play();
+
+    adVideo.onended = () => {
+      adVideo.pause();
+      adVideo.classList.remove("active");
+      adVideo.src = ""; // Clear the source to stop the video from playing again
+      isVideoPlaying = false;
+      checkAdCompletion();
+    };
+  }
+
+  if (audioUrl && adAudio) {
+    isAudioPlaying = true;
+    adAudio.src = audioUrl;
+    adAudio.play();
+
+    adAudio.onended = () => {
+      adAudio.pause();
+      isAudioPlaying = false;
+      checkAdCompletion();
+    };
+  }
+
+  if (!isVideoPlaying && !isAudioPlaying) {
+    checkAdCompletion();
+  }
 });
 
 socket.on("adBreakStart", (adBreak) => {
+  isAdPlaying = true;
   wasPlaying = false;
   if (player) player.mute();
   visualizer.show(adBreak, adBreak.AdBreakURL);
 });
 
 socket.on("adBreakEnd", (stream) => {
+  isAdPlaying = false;
+  wasPlaying = false;
   if (player) player.unMute();
+  updateVolume();
   visualizer.hide();
 
   currentVideo = stream.currentVideo;
@@ -259,22 +293,38 @@ function showCurrentSong() {
 // Initial volume display n also when moving the slider, the number and the color will also change depending on the slide volume value , e.g volume getting louder
 function updateVolume() {
   const slider = document.getElementById("volumeSlider");
+  const adVideo = document.getElementById("adVideo");
+  const adAudio = document.getElementById("adAudio");
+  const volumeText = document.getElementById("volumeValue");
 
-  const volume = parseInt(slider.value);
+  function applyVolume(volume) {
+    // volume can take values from 0 to 100
 
-  document.getElementById("volumeValue").textContent = volume;
+    // for HTML elements like audio and video volume value is from 0.0 to 1.0
+    if (adVideo) adVideo.volume = volume / 100;
+    if (adAudio) adAudio.volume = volume / 100;
 
-  // Only set volume if the player is already initialized
-  if (player && player.setVolume) {
-    player.unMute();
-    player.setVolume(volume);
+    if (volumeText) volumeText.textContent = volume;
+
+    // Only set volume if the player is already initialized
+    if (player && player.setVolume && !isAdPlaying) {
+      player.unMute();
+      player.setVolume(volume);
+    }
+
+    slider.style.background = `linear-gradient(
+    to right,
+    var(--sage-600) 0%,
+    var(--sage-600) ${volume}%,
+    var(--sage-200) ${volume}%, 
+    var(--sage-200) 100%
+    )`;
   }
 
-  slider.style.background = `linear-gradient(
-  to right,
-  var(--sage-600) 0%,
-  var(--sage-600) ${volume}%,
-  var(--sage-200) ${volume}%,
-  var(--sage-200) 100%
-  )`;
+  applyVolume(parseInt(slider.value));
+
+  slider.oninput = function (event) {
+    const newVolume = parseInt(event.target.value);
+    applyVolume(newVolume);
+  };
 }
