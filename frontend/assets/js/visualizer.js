@@ -27,12 +27,27 @@ document.addEventListener("DOMContentLoaded", function () {
       adVideo.load();
     }
 
+    const adAudio = document.getElementById("adAudio");
+    if (adAudio) {
+      adAudio.load(); 
+      let playPromise = adAudio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            adAudio.pause();
+          })
+          .catch((error) => {
+            console.log(
+              "Stummes Audio-Unlock wurde ignoriert (erwartetes Verhalten):",
+              error,
+            );
+          });
+      }
+    }
+
     document.body.removeEventListener("touchstart", unlockAudio);
     document.body.removeEventListener("click", unlockAudio);
   };
-
-  document.body.addEventListener("touchstart", unlockAudio, { once: true });
-  document.body.addEventListener("click", unlockAudio, { once: true });
 
   // Connect <audio> element to Web Audio API analyser (only once)
   async function setupAudio(audioElement) {
