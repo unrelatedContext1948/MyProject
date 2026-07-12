@@ -7,21 +7,62 @@ document.addEventListener("DOMContentLoaded", function () {
   let source = null;
   let animationId = null;
 
+  const unlockAudio = () => {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+    }
+
+    const buffer = audioContext.createBuffer(1, 1, 22050);
+    const dummySource = audioContext.createBufferSource();
+    dummySource.buffer = buffer;
+    dummySource.connect(audioContext.destination);
+    dummySource.start(0);
+
+    const adVideo = document.getElementById("adVideo");
+    if (adVideo) {
+      adVideo.load();
+    }
+
+    document.body.removeEventListener("touchstart", unlockAudio);
+    document.body.removeEventListener("click", unlockAudio);
+  };
+
+  document.body.addEventListener("touchstart", unlockAudio, { once: true });
+  document.body.addEventListener("click", unlockAudio, { once: true });
+
   // Connect <audio> element to Web Audio API analyser (only once)
   async function setupAudio(audioElement) {
-    if (source === null) {
-      audioContext = new AudioContext(); // audio source
-      source = audioContext.createMediaElementSource(audioElement); // audio element source
-      analyser = audioContext.createAnalyser(); // analyser node
-      source.connect(analyser); // connect source to analyser
-      analyser.connect(audioContext.destination); // connect analyser to output
+    try {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      if (source === null) {
+        audioElement.crossOrigin = "anonymous"; // Extra-Sicherheit für iOS
+        source = audioContext.createMediaElementSource(audioElement);
+        analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+      }
+      analyser.fftSize = 32768;
+    } catch (error) {
+      console.warn("Web Audio API has been blocked:", error);
     }
-    analyser.fftSize = 32768; // set Fast Fourier Transform (fft) size for better resolution
   }
 
   function resizeCanvas() {
-    canvas.width = canvas.clientWidth; // set canvas width to match CSS size
-    canvas.height = canvas.clientHeight; // set canvas height to match CSS size
+    canvas.width =
+      canvas.clientWidth || canvas.parentElement.clientWidth || 560; // set canvas width to match CSS size
+    canvas.height =
+      canvas.clientHeight || canvas.parentElement.clientHeight || 315; // set canvas height to match CSS size
   }
 
   function drawWaveform() {
@@ -32,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function draw() {
       analyser.getByteTimeDomainData(dataArray); // get time domain data (waveform)
 
-      ctx.fillStyle = "rgb(255, 253, 253)"; // semi-transparent background
+      ctx.fillStyle = "rgb(255, 253, 253, 0.8)"; // semi-transparent background
       ctx.fillRect(0, 0, canvas.width, canvas.height); // clear canvas
 
       ctx.lineWidth = 2; // set line width for waveform
@@ -82,7 +123,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (audioElement) {
       await setupAudio(audioElement); // set up audio context and analyser
     }
-    audioElement.play(); // start playing audio
+    let playPromise = audioElement.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.warn("iOS has blocked the audio:", error);
+      });
+    }
     drawWaveform(); // start drawing waveform
   }
 

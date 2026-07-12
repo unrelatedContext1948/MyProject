@@ -217,7 +217,19 @@ socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
     isVideoPlaying = true;
     adVideo.src = videoUrl;
     adVideo.classList.add("active");
-    adVideo.play();
+
+    let playPromise = adVideo.play();
+
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.warn("ad notification was blocked:", error);
+        adVideo.pause();
+        adVideo.classList.remove("active");
+        adVideo.src = "";
+        isVideoPlaying = false;
+        checkAdCompletion();
+      });
+    }
 
     adVideo.onended = () => {
       adVideo.pause();
