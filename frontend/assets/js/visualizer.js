@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const adAudio = document.getElementById("adAudio");
     if (adAudio) {
-      adAudio.load(); 
+      adAudio.load();
       let playPromise = adAudio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -37,10 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
             adAudio.pause();
           })
           .catch((error) => {
-            console.log(
-              "Stummes Audio-Unlock wurde ignoriert (erwartetes Verhalten):",
-              error,
-            );
+            console.log("Audio-unlock was ignored:", error);
           });
       }
     }
