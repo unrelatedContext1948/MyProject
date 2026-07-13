@@ -70,10 +70,9 @@ function createYouTubePlayer(stream) {
     videoId: videoId,
     playerVars: {
       autoplay: 1, //  player autoplay on load
-      controls: 0, //  YouTube controls removed
+      // controls: 0, //  YouTube controls removed
       mute: 1,
-      disablekb: 1, // disables keyboard controls on player
-      // start: Math.floor(stream.currentTime),
+      // disablekb: 1, // disables keyboard controls on player
       start: seekPosition(stream),
     },
     events: {
@@ -196,25 +195,12 @@ socket.on("queueUpdated", (stream) => {
 
 // ─── Ad break events ─────────────────────────────────────────────────────────
 
-socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
+socket.on("adBreakNotification", ({ videoUrl }) => {
   isAdPlaying = true;
   if (player) player.mute();
   const adVideo = document.getElementById("adVideo");
-  const adAudio = document.getElementById("adAudio");
-
-  let isVideoPlaying = false;
-  let isAudioPlaying = false;
-
-  function checkAdCompletion() {
-    if (!isVideoPlaying && !isAudioPlaying) {
-      isAdPlaying = false;
-      if (player) player.unMute();
-      updateVolume();
-    }
-  }
 
   if (adVideo && videoUrl) {
-    isVideoPlaying = true;
     adVideo.src = videoUrl;
     adVideo.classList.add("active");
 
@@ -226,8 +212,9 @@ socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
         adVideo.pause();
         adVideo.classList.remove("active");
         adVideo.src = "";
-        isVideoPlaying = false;
-        checkAdCompletion();
+        isAdPlaying = false;
+        if (player) player.unMute();
+        updateVolume();
       });
     }
 
@@ -235,25 +222,7 @@ socket.on("adBreakNotification", ({ audioUrl, videoUrl }) => {
       adVideo.pause();
       adVideo.classList.remove("active");
       adVideo.src = ""; // Clear the source to stop the video from playing again
-      isVideoPlaying = false;
-      checkAdCompletion();
     };
-  }
-
-  if (audioUrl && adAudio) {
-    isAudioPlaying = true;
-    adAudio.src = audioUrl;
-    adAudio.play();
-
-    adAudio.onended = () => {
-      adAudio.pause();
-      isAudioPlaying = false;
-      checkAdCompletion();
-    };
-  }
-
-  if (!isVideoPlaying && !isAudioPlaying) {
-    checkAdCompletion();
   }
 });
 
