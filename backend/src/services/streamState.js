@@ -20,6 +20,10 @@ const { getApprovedAdBreaks } = require("./songsadbreak");
 // Current stream state stored in backend memory
 let queue = [];
 let currentIndex = 0;
+// --- AI GENERATED CLAUDE (14.07.2026) ---
+// The AI has suggested to get the songsId by their ID in the database so it is more reliable
+let currentSongId = null;
+// -- AI GENERATED END
 // stores when the current video started playing
 // used to estimate how many seconds the current video has already played
 let videoStartTime = Date.now();
@@ -29,15 +33,30 @@ Load the latest queue from the database
 */
 function loadQueue() {
   queue = PlaylistModel.getSongsInPlaylist();
+  getCurrentVideo();
   return queue;
 }
 // return the currently playing video based on currentIndex
 // if the in-memory queue is empty, load it from the database
+
 function getCurrentVideo() {
+  // --- AI GENERATED CLAUDE (14.07.2026) ---
   if (queue.length === 0) {
-    loadQueue();
+    currentIndex = 0;
+    currentSongId = null;
+    return null;
   }
-  return queue[currentIndex] || null;
+  if (currentSongId !== null) {
+    const idx = queue.findIndex((s) => s.PlaylistID === currentSongId);
+    if (idx !== -1) {
+      currentIndex = idx;
+      return queue[currentIndex];
+    }
+  }
+  currentIndex = Math.min(currentIndex, queue.length - 1);
+  currentSongId = queue[currentIndex].PlaylistID;
+  return queue[currentIndex];
+  // --- AI GENERATED CLAUDE END---
 }
 
 // We need to know how much time will be needed for the placement
@@ -73,27 +92,27 @@ function convertSegmentDuration(totalSeconds) {
 //                  timing and ad break spacing
 function getSegmentBounds(video) {
   if (!video) return { startSeconds: 0, endSeconds: null, segmentDuration: 0 };
- 
+
   const fullDuration = parseTimeToSeconds(video.Duration);
   let startSeconds = parseTimeToSeconds(video.StartTime) || 0;
   let endSeconds = parseTimeToSeconds(video.EndTime);
- 
+
   // Clamp against the real video length when it is known.
   if (fullDuration > 0) {
     if (startSeconds < 0 || startSeconds >= fullDuration) startSeconds = 0;
-    if (endSeconds !== null && endSeconds > fullDuration) endSeconds = fullDuration;
+    if (endSeconds !== null && endSeconds > fullDuration)
+      endSeconds = fullDuration;
   }
   // An end that is not after the start is invalid, treat as no end bound.
   if (endSeconds !== null && endSeconds <= startSeconds) endSeconds = null;
- 
+
   const segmentDuration =
     endSeconds !== null
       ? endSeconds - startSeconds
       : Math.max(0, fullDuration - startSeconds);
- 
+
   return { startSeconds, endSeconds, segmentDuration };
 }
-
 
 function peekNextAdBreak() {
   // Get all approved ad breaks and filter out those without a valid URL{
@@ -122,14 +141,16 @@ function buildMergedQueue(nextAdBreakIn) {
 
   // keeps the queue on 6 items
   const upcoming = [];
-  for (let i = 1; upcoming.length < 7 && queue.length > 0; i++) {
+  for (let i = 1; upcoming.length < 6 && queue.length > 0; i++) {
     const idx = (currentIndex + i) % queue.length;
     upcoming.push(queue[idx]);
   }
 
   // No ad break scheduled or the 15 minutes intervall is overwhelmed
   if (nextAdBreakIn === null || nextAdBreakIn > 900) {
-    return upcoming.map((s) => ({ ...s, type: "song", 
+    return upcoming.map((s) => ({
+      ...s,
+      type: "song",
       Duration: convertSegmentDuration(getSegmentBounds(s).segmentDuration),
     }));
   }
@@ -149,15 +170,19 @@ function buildMergedQueue(nextAdBreakIn) {
 
   const validAdBreak = peekNextAdBreak();
   if (!validAdBreak) {
-    return upcoming.map((s) => ({ ...s, type: "song",
+    return upcoming.map((s) => ({
+      ...s,
+      type: "song",
       Duration: convertSegmentDuration(getSegmentBounds(s).segmentDuration),
-     }));
+    }));
   }
 
   // Insert the first valid ad break at the calculated position
-  const merged = upcoming.map((s) => ({ ...s, type: "song",
+  const merged = upcoming.map((s) => ({
+    ...s,
+    type: "song",
     Duration: convertSegmentDuration(getSegmentBounds(s).segmentDuration),
-   }));
+  }));
   merged.splice(insertAt, 0, {
     type: "adbreak",
     // display the ad actual ad break title from the database, so the user knows what ad break is coming up
@@ -207,16 +232,15 @@ function used when frontend notifies the server that the current vid
 has ended
 */
 function moveToNextVideo() {
-  if (queue.length === 0) {
-    loadQueue();
-  }
+  if (queue.length === 0) loadQueue();
   currentIndex++;
   // temporary for synchronization testing
   // loops back to first video when the queue ends (so no silence)
   // later this will be replaced with random videos from PlaylistsTable when the queue ends (so its not final yet for this function)
-  if (currentIndex >= queue.length) {
-    currentIndex = 0;
-  }
+  if (currentIndex >= queue.length) currentIndex = 0;
+  // --- AI GENERATED CLAUDE (14.07.2026) ---
+  currentSongId = queue[currentIndex] ? queue[currentIndex].PlaylistID : null;
+  // --- AI GENERATED CLAUDE END ---
   // reset the synchronization timer because a new video has started playing
   // the backend uses videoStartTime to estimate playback position od the current vid for newly connected users
   videoStartTime = Date.now();
