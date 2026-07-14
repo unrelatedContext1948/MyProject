@@ -16,9 +16,9 @@ let wasPlaying = false;
 let currentVideo = null;
 let videoTimeout = null;
 let isSkippingVideo = false; // for skipping copyright video
-let segmentEndSeconds = null; // stop position of the current segment, null = play to natural end
-let segmentStartSeconds = null; // NEW: this makes sure that old data were not overwritten from previous played songs
-let segmentMonitor = null; // interval that watches the segment end boundary
+// let segmentEndSeconds = null; // stop position of the current segment, null = play to natural end
+// let segmentStartSeconds = null; // NEW: this makes sure that old data were not overwritten from previous played songs
+// let segmentMonitor = null; // interval that watches the segment end boundary
 let isAdPlaying = false;
 
 // Absolute position in the source video a client should seek to.
@@ -31,6 +31,7 @@ function seekPosition(stream) {
 // Poll the player and advance the stream once the segment end is reached.
 // Segment videos never fire YouTube's ENDED event at the cut point, so the
 // boundary has to be enforced here.
+/*
 function startSegmentMonitor() {
   stopSegmentMonitor();
   if (segmentEndSeconds === null) return;
@@ -39,6 +40,7 @@ function startSegmentMonitor() {
     if (!player || typeof player.getCurrentTime !== "function") return;
     // we get the current time and see if both startTime and EndTime were reached as in the database
     const currentTime = player.getCurrentTime(); // this is just for preventing redundancy
+    console.log("segment tick:", currentTime, "start:", segmentStartSeconds, "end:", segmentEndSeconds, "reached:", hasReachedStart);
     if (!hasReachedStart) {
       if (currentTime >= segmentStartSeconds - 2) {
         hasReachedStart = true;
@@ -63,6 +65,7 @@ function stopSegmentMonitor() {
     segmentMonitor = null;
   }
 }
+*/
 
 // This function is called by the YouTube IFrame API when it's ready
 function onYouTubeIframeAPIReady() {
@@ -75,8 +78,10 @@ function createYouTubePlayer(stream) {
   const videoId = extractVideoId(stream.currentVideo.VideoURL);
   if (!videoId) return;
 
+  /*
   segmentEndSeconds = stream.endSeconds ?? null;
   segmentStartSeconds = seekPosition(stream);
+  */
 
   // Create the YouTube IFrame Player inside the #youtubePlayer div
   player = new YT.Player("youtubePlayer", {
@@ -115,25 +120,25 @@ function onPlayerStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING) {
     wasPlaying = true;
 
-    startSegmentMonitor();
-    if (segmentEndSeconds === null) {
-      const duration = player.getDuration();
-      if (duration > 0) {
-        clearTimeout(videoTimeout);
-        videoTimeout = setTimeout(
-          () => {
-            socket.emit("videoEnded", currentIndex);
-          },
-          (duration + 5) * 1000,
-        );
-      }
+    // startSegmentMonitor();
+    // if (segmentEndSeconds === null) {
+    const duration = player.getDuration();
+    if (duration > 0) {
+      clearTimeout(videoTimeout);
+      videoTimeout = setTimeout(
+        () => {
+          socket.emit("videoEnded", currentIndex);
+        },
+        (duration + 5) * 1000,
+      );
     }
+    //}
   }
   // YT.PlayerState.ENDED === 0 — fires when the current video finishes
   if (event.data === YT.PlayerState.ENDED && wasPlaying) {
     wasPlaying = false;
     clearTimeout(videoTimeout);
-    stopSegmentMonitor();
+    // stopSegmentMonitor();
     socket.emit("videoEnded", currentIndex);
   }
 }
@@ -175,8 +180,11 @@ socket.on("currentStream", (stream) => {
   currentIndex = stream.currentIndex;
 
   const videoId = extractVideoId(currentVideo?.VideoURL);
+  /*
   segmentEndSeconds = stream.endSeconds ?? null;
   segmentStartSeconds = seekPosition(stream);
+  */
+
   if (player) {
     player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
   } else {
@@ -188,12 +196,14 @@ socket.on("currentStream", (stream) => {
 socket.on("videoChanged", (stream) => {
   isSkippingVideo = false;
   wasPlaying = false;
-  stopSegmentMonitor();
+  // stopSegmentMonitor();
   currentVideo = stream.currentVideo;
   queue = stream.mergedQueue;
   currentIndex = stream.currentIndex;
+  /*
   segmentEndSeconds = stream.endSeconds ?? null;
   segmentStartSeconds = seekPosition(stream);
+  */
 
   if (player && typeof player.loadVideoById === "function") {
     const videoId = extractVideoId(currentVideo.VideoURL);
@@ -208,6 +218,26 @@ socket.on("videoChanged", (stream) => {
 socket.on("queueUpdated", (stream) => {
   queue = stream.mergedQueue;
   if (typeof renderQueue === "function") renderQueue();
+
+  // --- AI GENERATED CLAUDE (14.07.2026) BEGIN ---
+  // PROMPT: extend the queueUpdated event so after each video submission the video get automatticaly played
+  if (!currentVideo && stream.currentVideo) {
+    currentVideo = stream.currentVideo;
+    currentIndex = stream.currentIndex;
+
+    const videoId = extractVideoId(currentVideo.VideoURL);
+    if (videoId) {
+      if (player && typeof player.loadVideoById === "function") {
+        player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
+      } else if (ytApiReady) {
+        createYouTubePlayer(stream);
+      } else {
+        pendingStream = stream;
+      }
+      showCurrentSong();
+    }
+  }
+  // --- AI GENERATED END ---
 });
 
 // ─── Ad break events ─────────────────────────────────────────────────────────
