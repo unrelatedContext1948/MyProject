@@ -1,6 +1,9 @@
 /* for volume control and now playing content 
 actual playback will be handled by backend/integration 
 */
+
+// NOTE: new variables such as segmentStartSeconds and hasReachedStart were introduced to solve the problem of shortly skipped videos
+
 const socket = io();
 
 let player; // the YouTube IFrame Player instance
@@ -14,6 +17,7 @@ let currentVideo = null;
 let videoTimeout = null;
 let isSkippingVideo = false; // for skipping copyright video
 let segmentEndSeconds = null; // stop position of the current segment, null = play to natural end
+let segmentStartSeconds = null; // NEW: this makes sure that old data were not overwritten from previous played songs
 let segmentMonitor = null; // interval that watches the segment end boundary
 let isAdPlaying = false;
 
@@ -30,9 +34,19 @@ function seekPosition(stream) {
 function startSegmentMonitor() {
   stopSegmentMonitor();
   if (segmentEndSeconds === null) return;
+  let hasReachedStart = false; // NEW: try to solve problem by declaring a boolean variable for reaching the start since the problem is in the start of the video
   segmentMonitor = setInterval(() => {
     if (!player || typeof player.getCurrentTime !== "function") return;
-    if (player.getCurrentTime() >= segmentEndSeconds) {
+    // we get the current time and see if both startTime and EndTime were reached as in the database
+    const currentTime = player.getCurrentTime(); // this is just for preventing redundancy
+    if (!hasReachedStart) {
+      if (currentTime >= segmentStartSeconds - 2) {
+        hasReachedStart = true;
+      } else {
+        return;
+      }
+    }
+    if (currentTime >= segmentEndSeconds) {
       stopSegmentMonitor();
       clearTimeout(videoTimeout);
       if (wasPlaying) {
@@ -62,6 +76,7 @@ function createYouTubePlayer(stream) {
   if (!videoId) return;
 
   segmentEndSeconds = stream.endSeconds ?? null;
+  segmentStartSeconds = seekPosition(stream);
 
   // Create the YouTube IFrame Player inside the #youtubePlayer div
   player = new YT.Player("youtubePlayer", {
@@ -161,6 +176,7 @@ socket.on("currentStream", (stream) => {
 
   const videoId = extractVideoId(currentVideo?.VideoURL);
   segmentEndSeconds = stream.endSeconds ?? null;
+  segmentStartSeconds = seekPosition(stream);
   if (player) {
     player.loadVideoById({ videoId, startSeconds: seekPosition(stream) });
   } else {
@@ -177,6 +193,7 @@ socket.on("videoChanged", (stream) => {
   queue = stream.mergedQueue;
   currentIndex = stream.currentIndex;
   segmentEndSeconds = stream.endSeconds ?? null;
+  segmentStartSeconds = seekPosition(stream);
 
   if (player && typeof player.loadVideoById === "function") {
     const videoId = extractVideoId(currentVideo.VideoURL);
