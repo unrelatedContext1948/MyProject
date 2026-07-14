@@ -85,9 +85,9 @@ function createYouTubePlayer(stream) {
     videoId: videoId,
     playerVars: {
       autoplay: 1, //  player autoplay on load
-      // controls: 0, //  YouTube controls removed
+      controls: 0, //  YouTube controls removed
       mute: 1,
-      // disablekb: 1, // disables keyboard controls on player
+      disablekb: 1, // disables keyboard controls on player
       start: seekPosition(stream),
     },
     events: {

@@ -4,7 +4,7 @@ const EventEmitter = require("events");
 const songsAdbreak = require("./songsadbreak");
 const streanState = require("./streamState.js");
 
-const AD_BREAK_INTERVAL = 1 * 60 * 1000; // 15 minutes
+const AD_BREAK_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
 class MasterClock extends EventEmitter {
   constructor() {
@@ -32,7 +32,6 @@ class MasterClock extends EventEmitter {
   }
 
   triggerAdBreak(adBreakData) {
-    
     if (this.isAdBreaking) return;
 
     if (!adBreakData) {
