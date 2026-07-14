@@ -44,11 +44,32 @@ streamState.loadQueue();
 masterClock.start();
 
 let adBreakNotificationSent = false;
+let segmentAdvanced = false;
 
 setInterval(() => {
   if (masterClock.isAdBreaking) return;
 
   const stream = streamState.getCurrentStream();
+
+  // --- AI Generated Claude (14.07.2026) BEGIN ---
+  // Prompt: implement the segmentation part on the serverside because it is more reliable than recieving it on the client side
+  if (stream.endSeconds !== null) {
+    if (stream.remainingTime <= 0 && !segmentAdvanced) {
+      segmentAdvanced = true;
+      if (stream.mergedQueue[0] && stream.mergedQueue[0].type === "adbreak") {
+        const nextAdBreak = streamState.peekNextAdBreak();
+        streamState.advanceAdBreak();
+        masterClock.triggerAdBreak(nextAdBreak);
+      } else {
+        const nextStream = streamState.moveToNextVideo();
+        io.emit("videoChanged", nextStream);
+      }
+      return;
+    } else if (stream.remainingTime > 0) {
+      segmentAdvanced = false;
+    }
+  }
+  // --- AI generated END ---
 
   if (stream.remainingTime <= 4 && stream.remainingTime > 0) {
     if (stream.mergedQueue[0] && stream.mergedQueue[0].type === "adbreak") {
@@ -86,7 +107,11 @@ masterClock.on("adBreakEnd", (finishedAdBreak) => {
 //  Solution: We need to first check if the reportedIndex equals the currentIndex
 //  and also if the reported Index is the same as the nextIndexToAppear
 //  Therefore we define the start of our new index named nextIndexToAppear
-let nextIndexToAppear = -1;
+//  Observation: video pauses everytime when the index stops at 0 (through the log)
+//  Problem: our reportedINdex get 0 when the queue replays, meaning the countig index will cause us a problem
+//  this is because the currentIndex will be setten to 0 due to moveToNextVideo in streamState.js, when the queue finishes and this is the same index as the reported one
+//  Solution: use a boolean to prevent this problem
+let hasAdvancedCurrentVideo = false;
 
 // Listen for new client connections
 // Each client receives the current stream state when it connects
@@ -102,31 +127,35 @@ io.on("connection", (socket) => {
       "reportedIndex:",
       reportedIndex,
     );
-    // first check: was the song playing before?
-    if (reportedIndex === nextIndexToAppear) {
-      console.log(
-        "videoEnded ignored – already updated past index",
-        reportedIndex,
-      );
+
+    // Observation: multiple videoChanged was sent after a videoEnded event during an ad break
+    // Solution: check if there is an ad break
+    if (masterClock.isAdBreaking) {
+      console.log("videoEnded ignored – ad break in progress");
       return;
     }
-    // second check: is the playing song actual?
+
     const current = streamState.getCurrentStream();
     if (reportedIndex !== current.currentIndex) {
       console.log(
-        "videoEnded ignored – stte index",
+        "videoEnded ignored – stale index",
         reportedIndex,
         "current is",
         current.currentIndex,
       );
       return;
     }
-    nextIndexToAppear = reportedIndex;
-    const currentStream = streamState.getCurrentStream();
-    if (
-      currentStream.mergedQueue[0] &&
-      currentStream.mergedQueue[0].type === "adbreak"
-    ) {
+    // delete nextIndexToAppear because it has caused problem and replce it with this boolean condition
+    if (hasAdvancedCurrentVideo) {
+      console.log(
+        "videoEnded ignored – already advanced past index",
+        reportedIndex,
+      );
+      return;
+    }
+    hasAdvancedCurrentVideo = true;
+
+    if (current.mergedQueue[0] && current.mergedQueue[0].type === "adbreak") {
       const nextAdBreak = streamState.peekNextAdBreak();
       streamState.advanceAdBreak();
       masterClock.triggerAdBreak(nextAdBreak);
@@ -134,6 +163,7 @@ io.on("connection", (socket) => {
       const nextStream = streamState.moveToNextVideo();
       io.emit("videoChanged", nextStream);
     }
+    hasAdvancedCurrentVideo = false;
   });
 
   socket.on("adBreakOver", () => {
