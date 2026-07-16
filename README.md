@@ -26,11 +26,65 @@ git pull
 - If cloning does not work because of network or port issues, try using the university VPN first.
 - After cloning, open the project folder in your code editor.
 
+# 1.1. Run the project locally
+
+Requirements
+
+- Node.js v20.10 or newer (some dependencies use newer JavaScript syntax that older Node versions cannot parse). Check your version with:
+node --version
+
+If it shows something older than v20.10.0, update Node.js first: 
+
+Here is a list for each OS on how you can update Node.js:
+
+### Windows
+
+1. Download and install [nvm-windows](https://github.com/coreybutler/nvm-windows/releases) (`nvm-setup.exe`)
+2. Open a new terminal, then run:
+
+```bash
+nvm install 20.20.2
+nvm use 20.20.2
+
+### macOS
+
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.zshrc
+nvm install 20
+nvm use 20
+
+### Linux (Debias/Ubuntu)
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc
+nvm install 20
+nvm use 20
+
+At the end you verify the change again with: 
+node --version
+
+## 1.2 Start the Server
+1. Go to the backend folder: cd backend
+2. install the dependencies: npm install
+3. Start the server: npm start
+
+Note: On the very first start, the app automatically downloads the
+Kokoro TTS model (used for the AI-generated ad break announcements,
+~300MB). This needs an internet connection and can take a few minutes.
+Every start after that is fast, since the model is cached locally.
+
+4. Open your browser at: http://localhost:3000
+
+
 ### IMPORTANT !
 
 - EVERYONE SHOULD CLONE THE REPOSITORY FIRST.
 - DO NOT WAIT UNTIL LATER.
 - THE REPOSITORY SHOULD BE THE MAIN SOURCE OF THE PROJECT.
+- ALWAYS RUN npm install INSIDE THE backend FOLDER, NOT THE PROJECT ROOT.
+- THE FIRST START NEEDS INTERNET ACCESS TO DOWNLOAD THE TTS MODEL.
+- IF npm start FAILS WITH A SYNTAX ERROR MENTIONING with, YOUR NODE VERSION IS TOO OLD - UPDATE IT.
 
 ---
 
