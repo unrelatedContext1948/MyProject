@@ -19,7 +19,7 @@ const { Server } = require("socket.io");
 const streamState = require("./src/services/streamState.js");
 const masterClock = require("./src/services/masterClock.js");
 
-const PORT = 3000; //typically for Node-Servers
+const PORT = process.env.PORT || 3000; //typically for Node-Servers
 
 // Create HTTP server from Express app
 // Socket.io must attach to the HTTP server in order to support WebSocket communication
