@@ -2,6 +2,7 @@ const Database = require("better-sqlite3");
 const path = require("path");
 const dbPath = path.join(__dirname, "database.db");
 const db = new Database(dbPath);
+db.pragma("foreign_keys = ON");
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS UsersTable(
@@ -31,6 +32,19 @@ CREATE TABLE IF NOT EXISTS AdBreaksTable(
     AdBreakText TEXT NOT NULL,
     AdBreakURL TEXT NOT NULL,
     Status TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS LikesTable(
+    LikesID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    UserID INTEGER NOT NULL,
+    PlaylistID INTEGER NOT NULL,
+    UNIQUE (UserID, PlaylistID),
+    FOREIGN KEY (UserID) REFERENCES UsersTable(UserID)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (PlaylistID) REFERENCES PlaylistsTable(PlaylistID)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
 `);
