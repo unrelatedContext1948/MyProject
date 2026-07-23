@@ -13,6 +13,12 @@ router.post("/submitAdText", express.json(), authenticate, (req, res) => {
     });
   }
 
+  if (adBreakText.length < 300 || adBreakText.length > 500) {
+    return res.status(400).json({
+      message: "Ad break text must be between 300 and 500 characters.",
+    });
+  }
+
   if (req.user.role === "admin") {
     songsAdBreak.addAdBreak(username, adBreakText, "approved");
   } else if (req.user.role === "authorized_user") {
