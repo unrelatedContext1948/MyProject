@@ -111,6 +111,30 @@
   gap: 6px;
 }
 
+.upvote-icon svg {
+  transition: fill 0.3s ease, transform 0.3s ease;
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.upvote-icon.liked svg {
+  animation: pop 0.4s ease;
+}
+
+.upvote-icon svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.upvote-icon.liked svg {
+  fill: var(--sage-600); 
+  stroke: var(--sage-600);
+}
+
 /* Volume Control */
 .volume-control {
   display: flex;

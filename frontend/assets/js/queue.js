@@ -93,9 +93,11 @@ async function renderQueue() {
         <span class="likes-number">0</span>
       </div>
       <div class="queue-duration">${escapeHTML(element.Duration)} </div>
-      
       `;
     }
+    box.querySelector(".upvote-icon")?.addEventListener("click", function () {
+      this.classList.toggle("liked");
+    });
     // add 'box' to the container
     container.appendChild(box);
   }
