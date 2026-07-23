@@ -14,6 +14,16 @@ for integration+backend, call the renderQueue() everytime the currentIndex chang
 
 */
 
+// This function is for escaping the real charecters, so attackers can not manipulate the website through commands like <img src=x onerror="alert('hallo')">
+function escapeHTML(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 async function renderQueue() {
   const container =
     document.getElementById(
@@ -55,10 +65,10 @@ async function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class= "queue-title-element">${element.Title}</span>
+      <span class= "queue-title-element">${escapeHTML(element.Title)}</span>
       <span class= "ad-badge">AD</span>
       </div>
-      <div class="queue-adtext">${element.AdText}</div>
+      <div class="queue-adtext">${escapeHTML(element.AdText)}</div>
       </div>
       
       `;
@@ -74,11 +84,11 @@ async function renderQueue() {
       </div>
       <div class="queue-details">
       <div class= "queue-title-box">
-      <span class="queue-title-element">${element.Title} - ${element.Channel}</span>
+      <span class="queue-title-element">${escapeHTML(element.Title)} - ${escapeHTML(element.Channel)}</span>
       </div>
-      <div class="queue-submitter">Submitted by ${element.SubmittedBy}</div>
+      <div class="queue-submitter">Submitted by ${escapeHTML(element.SubmittedBy)}</div>
       </div>
-      <div class="queue-duration">${element.Duration} </div>
+      <div class="queue-duration">${escapeHTML(element.Duration)} </div>
       
       `;
     }
