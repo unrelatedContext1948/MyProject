@@ -88,6 +88,10 @@ async function renderQueue() {
       </div>
       <div class="queue-submitter">Submitted by ${escapeHTML(element.SubmittedBy)}</div>
       </div>
+      <div class="upvote-icon">
+        <i data-feather="thumbs-up"></i>  
+        <span class="likes-number">0</span>
+      </div>
       <div class="queue-duration">${escapeHTML(element.Duration)} </div>
       
       `;
