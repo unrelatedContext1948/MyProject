@@ -24,74 +24,6 @@ function escapeHTML(str) {
     .replaceAll("'", "&#39;");
 }
 
-/* Likes: a guest without an account is identified by a random ID we
-   generate once and keep in localStorage, so the same browser can't
-   like the same song twice, but a fresh visit doesn't reset anything. */
-function getAnonymousId() {
-  let id = localStorage.getItem("anonymousId");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("anonymousId", id);
-  }
-  return id;
-}
-
-// PlaylistIDs the current user/browser has already liked, used to restore
-// the button's "liked" state after a page reload.
-let likedPlaylistIds = new Set();
-
-async function loadLikedPlaylistIds() {
-  const token = localStorage.getItem("token");
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  const query = token ? "" : `?anonymousId=${encodeURIComponent(getAnonymousId())}`;
-
-  try {
-    const response = await fetch(`/api/likes/mine${query}`, { headers });
-    if (!response.ok) return;
-    const data = await response.json();
-    likedPlaylistIds = new Set(data.likedPlaylistIds || []);
-  } catch (err) {
-    console.error("Failed to load liked songs:", err);
-  }
-}
-
-loadLikedPlaylistIds().then(() => {
-  if (typeof renderQueue === "function" && Array.isArray(queue) && queue.length) {
-    renderQueue();
-  }
-});
-
-// Sends the like/unlike request for a song and updates the clicked button
-// with the server's response (source of truth for the count).
-async function toggleLike(playlistID, iconElement) {
-  const token = localStorage.getItem("token");
-  const headers = { "Content-Type": "application/json" };
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  try {
-    const response = await fetch(`/api/likes/${playlistID}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ anonymousId: getAnonymousId() }),
-    });
-
-    if (!response.ok) return;
-
-    const data = await response.json();
-    iconElement.classList.toggle("liked", data.liked);
-    const likesNumber = iconElement.querySelector(".likes-number");
-    if (likesNumber) likesNumber.textContent = data.likes;
-
-    if (data.liked) {
-      likedPlaylistIds.add(playlistID);
-    } else {
-      likedPlaylistIds.delete(playlistID);
-    }
-  } catch (err) {
-    console.error("Failed to update like:", err);
-  }
-}
-
 async function renderQueue() {
   const container =
     document.getElementById(
@@ -156,19 +88,16 @@ async function renderQueue() {
       </div>
       <div class="queue-submitter">Submitted by ${escapeHTML(element.SubmittedBy)}</div>
       </div>
-      <div class="upvote-icon${likedPlaylistIds.has(element.PlaylistID) ? " liked" : ""}">
-        <i data-feather="thumbs-up"></i>
-        <span class="likes-number">${element.Likes || 0}</span>
+      <div class="upvote-icon">
+        <i data-feather="thumbs-up"></i>  
+        <span class="likes-number">0</span>
       </div>
       <div class="queue-duration">${escapeHTML(element.Duration)} </div>
       `;
     }
-    const upvoteIcon = box.querySelector(".upvote-icon");
-    if (upvoteIcon && element.type !== "adbreak") {
-      upvoteIcon.addEventListener("click", () =>
-        toggleLike(element.PlaylistID, upvoteIcon),
-      );
-    }
+    box.querySelector(".upvote-icon")?.addEventListener("click", function () {
+      this.classList.toggle("liked");
+    });
     // add 'box' to the container
     container.appendChild(box);
   }
