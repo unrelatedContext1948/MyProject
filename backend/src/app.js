@@ -14,7 +14,6 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const streamState = require("./services/streamState");
 const adBreakRoutes = require("./routes/adbreak");
-const likesRoutes = require("./routes/likes");
 const app = express();
 const PlaylistModel = require("./models/playlistModel");
 const { authenticate } = require("./middleware/authorization");
@@ -35,9 +34,6 @@ app.use("/api/users", express.json(), userRoutes);
 
 // Ad break management route
 app.use("/api/adbreak", adBreakRoutes);
-
-// Likes route - open to logged-in users and anonymous guests alike
-app.use("/api/likes", likesRoutes);
 
 // Define routes for serving HTML files and handling API requests
 app.get("/", (req, res) => {
