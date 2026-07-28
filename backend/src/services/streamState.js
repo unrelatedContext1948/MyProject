@@ -229,7 +229,7 @@ has ended
 */
 function moveToNextVideo() {
   if (queue.length === 0) loadQueue();
-  currentIndex++;
+  currentIndex = queue.findIndex((s) => s.PlaylistID !== currentSongId);
   // temporary for synchronization testing
   // loops back to first video when the queue ends (so no silence)
   // later this will be replaced with random videos from PlaylistsTable when the queue ends (so its not final yet for this function)
