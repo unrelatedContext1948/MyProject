@@ -3,7 +3,13 @@ const db = require("../database/database");
 const PlaylistModel = {
   // 1. Get Songs in a Playlist from the database
   getSongsInPlaylist: () => {
-    const sql = `SELECT * FROM PlaylistsTable`;
+    const sql = `
+      SELECT PlaylistsTable.*, COUNT(LikesTable.LikesID) AS Likes
+      FROM PlaylistsTable
+      LEFT JOIN LikesTable ON LikesTable.PlaylistID = PlaylistsTable.PlaylistID
+      GROUP BY PlaylistsTable.PlaylistID
+      ORDER BY Likes DESC, PlaylistsTable.PlaylistID ASC
+    `;
     return db.prepare(sql).all();
   },
 
@@ -16,16 +22,24 @@ const PlaylistModel = {
     - type: video or ad break
     - adText: the text of the ad (only for ad breaks)  
   */
-  
-  
-  
+
   addSongToPlaylist: (songData) => {
-    const { Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL } = songData;
+    const {
+      Title,
+      Channel,
+      Duration,
+      StartTime,
+      EndTime,
+      SubmittedBy,
+      VideoURL,
+    } = songData;
     const sql = `
             INSERT INTO PlaylistsTable (Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-    return db.prepare(sql).run(Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL);
+    return db
+      .prepare(sql)
+      .run(Title, Channel, Duration, StartTime, EndTime, SubmittedBy, VideoURL);
   },
 
   // 3. Remove a song from a playlist in the database

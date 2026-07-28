@@ -24,6 +24,41 @@ function escapeHTML(str) {
     .replaceAll("'", "&#39;");
 }
 
+/* Likes: a guest without an account is identified by a random ID we
+   generate once and keep in localStorage, so the same browser can't
+   like the same song twice, but a fresh visit doesn't reset anything. */
+function getAnonymousId() {
+  let id = localStorage.getItem("anonymousId");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("anonymousId", id);
+  }
+  return id;
+}
+
+async function toggleLike(playlistID, iconElement) {
+  const token = localStorage.getItem("token");
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  try {
+    const response = await fetch(`/api/likes/${playlistID}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ anonymousId: getAnonymousId() }),
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+    iconElement.classList.toggle("liked", data.liked);
+    const likesNumber = iconElement.querySelector(".likes-number");
+    if (likesNumber) likesNumber.textContent = data.likes;
+  } catch (err) {
+    console.error("Failed to update like:", err);
+  }
+}
+
 async function renderQueue() {
   const container =
     document.getElementById(
@@ -90,14 +125,17 @@ async function renderQueue() {
       </div>
       <div class="upvote-icon">
         <i data-feather="thumbs-up"></i>  
-        <span class="likes-number">0</span>
+        <span class="likes-number">${element.Likes || 0}</span>
       </div>
       <div class="queue-duration">${escapeHTML(element.Duration)} </div>
       `;
     }
-    box.querySelector(".upvote-icon")?.addEventListener("click", function () {
-      this.classList.toggle("liked");
-    });
+    const upvoteIcon = box.querySelector(".upvote-icon");
+    if (upvoteIcon && element.type !== "adbreak") {
+      upvoteIcon.addEventListener("click", () =>
+        toggleLike(element.PlaylistID, upvoteIcon),
+      );
+    }
     // add 'box' to the container
     container.appendChild(box);
   }

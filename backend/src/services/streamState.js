@@ -140,11 +140,7 @@ function buildMergedQueue(nextAdBreakIn) {
   if (queue.length === 0) loadQueue();
 
   // keeps the queue on 6 items
-  const upcoming = [];
-  for (let i = 1; upcoming.length < 6 && queue.length > 0; i++) {
-    const idx = (currentIndex + i) % queue.length;
-    upcoming.push(queue[idx]);
-  }
+  const upcoming = queue.filter((s) => s.PlaylistID !== currentSongId).slice(0, 6);
 
   // No ad break scheduled or the 15 minutes intervall is overwhelmed
   if (nextAdBreakIn === null || nextAdBreakIn > 900) {
