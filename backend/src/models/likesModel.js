@@ -1,15 +1,15 @@
 const db = require("../database/database");
 
 const LikesModel = {
-  addLike: (UserID, AnonymousID, PlaylistID) => {
+  addReaction: (UserID, AnonymousID, PlaylistID, Type) => {
     const sql = `
-                INSERT INTO LikesTable (UserID, AnonymousID, PlaylistID)
-                VALUES (?, ?, ?)
+                INSERT INTO LikesTable (UserID, AnonymousID, PlaylistID, Type)
+                VALUES (?, ?, ?, ?)
             `;
-    return db.prepare(sql).run(UserID, AnonymousID, PlaylistID);
+    return db.prepare(sql).run(UserID, AnonymousID, PlaylistID, Type);
   },
 
-  removeLike: (UserID, AnonymousID, PlaylistID) => {
+  removeReaction: (UserID, AnonymousID, PlaylistID) => {
     const sql = `
                 DELETE FROM LikesTable
                 WHERE (UserID = ? OR AnonymousID = ?) AND PlaylistID = ?
@@ -17,19 +17,40 @@ const LikesModel = {
     return db.prepare(sql).run(UserID, AnonymousID, PlaylistID);
   },
 
+  // Returns 'like', 'dislike', or null if this identity hasn't reacted to the song yet.
+  getReactionType: (UserID, AnonymousID, PlaylistID) => {
+    const sql = `
+                SELECT Type FROM LikesTable
+                WHERE PlaylistID = ? AND (UserID = ? OR AnonymousID = ?)
+            `;
+    const result = db.prepare(sql).get(PlaylistID, UserID, AnonymousID);
+    return result ? result.Type : null;
+  },
+
   getLikeCount: (PlaylistID) => {
     const sql = `
-                SELECT COUNT(*) AS count FROM LikesTable WHERE PlayListID = ?
+                SELECT COUNT(*) AS count FROM LikesTable WHERE PlaylistID = ? AND Type = 'like'
             `;
     return db.prepare(sql).get(PlaylistID).count;
   },
 
-  hasLiked: (UserID, AnonymousID, PlaylistID) => {
+  getDislikeCount: (PlaylistID) => {
     const sql = `
-                SELECT EXISTS(SELECT 1 FROM LikesTable WHERE PlaylistID = ? AND (UserID = ? OR AnonymousID = ?)) AS liked
+                SELECT COUNT(*) AS count FROM LikesTable WHERE PlaylistID = ? AND Type = 'dislike'
             `;
-    const result = db.prepare(sql).get(PlaylistID, UserID, AnonymousID);
-    return result.liked === 1;
+    return db.prepare(sql).get(PlaylistID).count;
+  },
+
+  // Likes minus dislikes - this is the value the queue gets sorted by.
+  getScore: (PlaylistID) => {
+    const sql = `
+                SELECT
+                    SUM(CASE WHEN Type = 'like' THEN 1 ELSE 0 END) -
+                    SUM(CASE WHEN Type = 'dislike' THEN 1 ELSE 0 END) AS score
+                FROM LikesTable WHERE PlaylistID = ?
+            `;
+    const result = db.prepare(sql).get(PlaylistID);
+    return result.score || 0;
   },
 };
 
