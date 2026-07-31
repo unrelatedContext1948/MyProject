@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS LikesTable(
     UserID INTEGER,
     AnonymousID TEXT,
     PlaylistID INTEGER NOT NULL,
+    Type TEXT NOT NULL DEFAULT 'like',
     UNIQUE (UserID, PlaylistID),
     UNIQUE (AnonymousID, PlaylistID),
     FOREIGN KEY (UserID) REFERENCES UsersTable(UserID)
