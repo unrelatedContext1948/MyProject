@@ -36,7 +36,7 @@ function getAnonymousId() {
   return id;
 }
 
-async function toggleLike(playlistID, iconElement) {
+async function toggleReaction(playlistID, type, reactionBox) {
   const token = localStorage.getItem("token");
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -45,17 +45,23 @@ async function toggleLike(playlistID, iconElement) {
     const response = await fetch(`/api/likes/${playlistID}`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ anonymousId: getAnonymousId() }),
+      body: JSON.stringify({ type, anonymousId: getAnonymousId() }),
     });
 
     if (!response.ok) return;
 
     const data = await response.json();
-    iconElement.classList.toggle("liked", data.liked);
-    const likesNumber = iconElement.querySelector(".likes-number");
-    if (likesNumber) likesNumber.textContent = data.likes;
+    reactionBox
+      .querySelector(".upvote-icon")
+      ?.classList.toggle("liked", data.reaction === "like");
+    reactionBox
+      .querySelector(".downvote-icon")
+      ?.classList.toggle("disliked", data.reaction === "dislike");
+
+    const scoreNumber = reactionBox.querySelector(".score-number");
+    if (scoreNumber) scoreNumber.textContent = data.score;
   } catch (err) {
-    console.error("Failed to update like:", err);
+    console.error("Failed to update reaction:", err);
   }
 }
 
@@ -123,18 +129,30 @@ async function renderQueue() {
       </div>
       <div class="queue-submitter">Submitted by ${escapeHTML(element.SubmittedBy)}</div>
       </div>
-      <div class="upvote-icon">
-        <i data-feather="thumbs-up"></i>  
-        <span class="likes-number">${element.Likes || 0}</span>
+      <div class="reaction-box">
+        <div class="upvote-icon">
+          <i data-feather="thumbs-up"></i>
+        </div>
+        <span class="score-number">${element.Score || 0}</span>
+        <div class="downvote-icon">
+          <i data-feather="thumbs-down"></i>
+        </div>
       </div>
       <div class="queue-duration">${escapeHTML(element.Duration)} </div>
       `;
     }
-    const upvoteIcon = box.querySelector(".upvote-icon");
-    if (upvoteIcon && element.type !== "adbreak") {
-      upvoteIcon.addEventListener("click", () =>
-        toggleLike(element.PlaylistID, upvoteIcon),
-      );
+    const reactionBox = box.querySelector(".reaction-box");
+    if (reactionBox && element.type !== "adbreak") {
+      reactionBox
+        .querySelector(".upvote-icon")
+        .addEventListener("click", () =>
+          toggleReaction(element.PlaylistID, "like", reactionBox),
+        );
+      reactionBox
+        .querySelector(".downvote-icon")
+        .addEventListener("click", () =>
+          toggleReaction(element.PlaylistID, "dislike", reactionBox),
+        );
     }
     // add 'box' to the container
     container.appendChild(box);

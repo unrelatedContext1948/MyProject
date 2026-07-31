@@ -105,14 +105,29 @@
   color: var(--sage-700);
 }
 
-.upvote-icon {
+.reaction-box {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.upvote-icon svg {
+.upvote-icon,
+.downvote-icon {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.score-number {
+  min-width: 1.5em;
+  text-align: center;
+}
+
+.upvote-icon svg,
+.downvote-icon svg {
   transition: fill 0.3s ease, transform 0.3s ease;
+  fill: none;
+  stroke: currentColor;
 }
 
 @keyframes pop {
@@ -122,17 +137,15 @@
 }
 
 .upvote-icon.liked svg {
+  fill: var(--sage-600);
+  stroke: var(--sage-600);
   animation: pop 0.4s ease;
 }
 
-.upvote-icon svg {
-  fill: none;
-  stroke: currentColor;
-}
-
-.upvote-icon.liked svg {
-  fill: var(--sage-600); 
-  stroke: var(--sage-600);
+.downvote-icon.disliked svg {
+  fill: var(--terracotta);
+  stroke: var(--terracotta);
+  animation: pop 0.4s ease;
 }
 
 /* Volume Control */
