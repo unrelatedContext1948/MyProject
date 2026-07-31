@@ -1,14 +1,20 @@
 const db = require("../database/database");
 
 const PlaylistModel = {
-  // 1. Get Songs in a Playlist from the database
+  // 1. Get Songs in a Playlist from the database, ordered by score
+  //    (likes minus dislikes) so the most-liked song is at the front of
+  //    the queue.
   getSongsInPlaylist: () => {
     const sql = `
-      SELECT PlaylistsTable.*, COUNT(LikesTable.LikesID) AS Likes
+      SELECT
+        PlaylistsTable.*,
+        COALESCE(SUM(CASE WHEN LikesTable.Type = 'like' THEN 1 ELSE 0 END), 0) AS Likes,
+        COALESCE(SUM(CASE WHEN LikesTable.Type = 'dislike' THEN 1 ELSE 0 END), 0) AS Dislikes,
+        COALESCE(SUM(CASE WHEN LikesTable.Type = 'like' THEN 1 WHEN LikesTable.Type = 'dislike' THEN -1 ELSE 0 END), 0) AS Score
       FROM PlaylistsTable
       LEFT JOIN LikesTable ON LikesTable.PlaylistID = PlaylistsTable.PlaylistID
       GROUP BY PlaylistsTable.PlaylistID
-      ORDER BY Likes DESC, PlaylistsTable.PlaylistID ASC
+      ORDER BY Score DESC, PlaylistsTable.PlaylistID ASC
     `;
     return db.prepare(sql).all();
   },
