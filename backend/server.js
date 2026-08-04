@@ -47,9 +47,15 @@ masterClock.on("adBreakEnd", () => {
 
 // Whether the currently playing index has already triggered an advance, so
 // concurrent videoEnded events from multiple tabs for the same play are all
-// rejected after the first. Reset on every advance since the queue loops and
-// the same index can come around again for a brand-new play.
+// rejected after the first. Reset a short moment after each advance (rather
+// than immediately) so near-simultaneous duplicate reports from other tabs –
+// which is the whole reason this flag exists – actually get deduped instead
+// of each triggering their own advance. The window only needs to cover the
+// spread between tabs reporting the same real ENDED event, not the time
+// until the next real end, so it stays far shorter than any video.
 let hasAdvancedCurrentVideo = false;
+let advanceDedupeResetTimer = null;
+const ADVANCE_DEDUPE_WINDOW_MS = 2000;
 
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -72,8 +78,11 @@ io.on("connection", (socket) => {
             return;
         }
         hasAdvancedCurrentVideo = true;
+        clearTimeout(advanceDedupeResetTimer);
+        advanceDedupeResetTimer = setTimeout(() => {
+            hasAdvancedCurrentVideo = false;
+        }, ADVANCE_DEDUPE_WINDOW_MS);
         const nextStream = streamState.moveToNextVideo();
-        hasAdvancedCurrentVideo = false;
         io.emit("videoChanged", nextStream);
     });
 
